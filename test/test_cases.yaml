@@ -1,0 +1,1026 @@
+- id: stacked_short_opt
+  usage: |+
+    Usage: prog foo [-ba] -r <baz>
+
+    Options:
+    -r <baz>  qux quux.
+
+  runs:
+    - prog: -rab foo
+      expect: {"foo": true, "-r": "ab", "-a": false, "-b": false}
+    - prog: -abrba foo
+      expect: {"foo": true, "-r": "ab", "-a": true, "-b": false}
+    - prog: -bar foo
+      expect: "user-error"
+      because: "-r requires argument"
+    - prog: foo -bar
+      expect: "user-error"
+      because: "-r requires argument"
+    - prog: -r -a -b foo
+      expect: "user-error"
+      because: "-r requires argument"
+
+- id: stacked_short_opt_without_arg
+  usage: |+
+    Usage: prog foo [-br <baz>] [-a <qux>]
+
+    Options:
+    -r <baz>  qux quux.
+
+  pebble:
+    - "foo"
+    -
+      - ":optional"
+      - [":short_opt", "-b"]
+      - [":short_opt_with_arg", "-r", "<baz>"]
+    -
+      - ":optional"
+      - [":short_opt", "-a"]
+      - [":arg", "<qux>"]
+  runs:
+    - prog: foo -rab
+      expect: {"-r": "ab", "-a": false, "-b": false, "<qux>": null}
+    - prog: foo -abrba
+      expect: "user-error"
+      because: "expected <qux>"
+    - prog: foo -bar
+      expect: "user-error"
+      because: "-r requires argument"
+    - prog: foo -r -a -b
+      expect: "user-error"
+      because: "-r requries argument"
+    - prog: foo -ar baz qux -b
+      expect: {"-r": "baz", "-a": true, "-b": true, "<qux>": "qux"}
+    - prog: foo -a -r baz qux
+      expect: {"-r": "baz", "-a": true, "-b": false, "<qux>": "qux"}
+
+- id: stacked_short_opt_with_arg
+  usage: |+
+    Usage: prog foo [-br <baz>] [-a <qux>]
+
+    Options:
+    -r <baz>  qux quux.
+    -a <qux>  i'm out of foobar numbers.
+
+  pebble:
+    - "foo"
+    -
+      - ":optional"
+      - [":short_opt", "-b"]
+      - [":short_opt_with_arg", "-r", "<baz>"]
+    -
+      - ":optional"
+      - [":short_opt_with_arg", "-a", "<qux>"]
+  runs:
+    - prog: foo -rab
+      expect: {"-r": "ab", "-a": null, "-b": false}
+    - prog: foo -abrba
+      expect: {"-r": null, "-a": "brba", "-b": false}
+    - prog: foo -bar
+      expect: {"-b": true, "-a": "r", "-r": null}
+    - prog: foo -r -a -b
+      expect: "user-error"
+      because: "-r requires argument"
+
+- id: fail_without_prog
+  usage: |+
+    Usage: (foo bar)
+
+  should: fail
+  because: program name not specified
+
+- id: cons
+  usage: |+
+    Usage: prog foo bar baz qux
+
+  pebble: ["foo", "bar", "baz", "qux"]
+
+
+- id: either
+  usage: |+
+    Usage: prog (either this | or this long one | or this one)
+
+  pebble:
+  - ":either"
+  - ["either", "this"]
+  - ["or", "this", "long", "one"]
+  - ["or", "this", "one"]
+
+
+- id: grouped_either
+  usage: |+
+    Usage: prog (either this | or (this long one | this one))
+
+  pebble:
+  - ":either"
+  - ["either", "this"]
+  -
+    - "or"
+    -
+      - ":either"
+      - ["this", "long", "one"]
+      - ["this", "one"]
+
+
+- id: dp127
+  usage: |+
+    Usage: prog (-h | -v [ --file <f> ])
+
+  pebble:
+  - ":either"
+  - [":short_opt", "-h"]
+  -
+    - [":short_opt", "-v"]
+    -
+      - ":optional"
+      -
+        - [":long_opt", "--file"]
+        - [":arg", "<f>"]
+
+
+- id: dp137
+  usage: |+
+    Usage: prog (n [m | (k | l)] | o p)
+
+  tokens:
+    ["prog",
+      "(",
+          "n", "[",
+                  "m", "|", "(", "k", "|", "l", ")",
+                "]",
+          "|", "o", "p",
+      ")"]
+
+  pebble:
+  - ":either"
+  -
+    - "n"
+    -
+      - ":optional"
+      - [":either", "m", "k", "l"]
+  - ["o", "p"]
+
+
+- id: naval_fate
+  usage: |+
+    Naval Fate.
+
+    Usage:
+      prog ship new <name>...
+      prog ship [<name>] move <x> <y> [--speed=<kn>]
+      prog ship shoot <x> <y>
+      prog mine (set|remove) <x> <y> [--moored|--drifting]
+      prog -h | --help
+      prog --version
+
+    Options:
+      -h --help     Show this screen.
+      --version     Show version.
+      --speed=<kn>  Speed in knots [default: 10].
+      --moored      Mored (anchored) mine.
+      --drifting    Drifting mine.
+
+  pebble:
+  - ":either"
+  - ["ship", "new", [":oom", &name [":arg", "<name>"]]]
+  -
+    - "ship"
+    - [":optional", *name]
+    - "move"
+    - &x [":arg", "<x>"]
+    - &y [":arg", "<y>"]
+    - [":optional", [":long_opt", ["--speed", "=", "<kn>"]]]
+  - ["ship", "shoot", *x, *y]
+  -
+    - "mine"
+    - [":either", "set", "remove"]
+    - *x
+    - *y
+    -
+      - ":optional"
+      -
+        - ":either"
+        - [":long_opt", "--moored"]
+        - [":long_opt", "--drifting"]
+  -
+    - ":either"
+    - [":short_opt", "-h"]
+    - [":long_opt", "--help"]
+  - [":long_opt", "--version"]
+
+- usage: "\n\n"
+  runs: []
+
+  id: agnostic_1
+- usage: |+
+    Usage: prog
+
+  runs:
+  - prog: ""
+    expect: {}
+
+  - prog: --xxx
+    expect: user-error
+  id: agnostic_2
+- usage: |+
+    Usage: prog [options]
+
+    -a  All.
+
+  runs:
+  - prog: ""
+    expect:
+      -a: false
+  - prog: -a
+    expect:
+      -a: true
+  - prog: -x
+    expect: user-error
+  id: agnostic_3
+- usage: |+
+    Usage: prog [options]
+
+    --all  All.
+
+  runs:
+  - prog: ""
+    expect:
+      --all: false
+  - prog: --all
+    expect:
+      --all: true
+  - prog: --xxx
+    expect: user-error
+  id: agnostic_4
+- usage: |+
+    Usage: prog [options]
+
+    -v, --verbose  Verbose.
+
+  runs:
+  - prog: --verbose
+    expect:
+      --verbose: true
+  - prog: --ver
+    expect:
+      --verbose: true
+  - prog: -v
+    expect:
+      --verbose: true
+  id: agnostic_5
+- usage: |+
+    Usage: prog [options]
+
+    -p PATH
+
+  runs:
+  - prog: -p home/
+    expect:
+      -p: home/
+  - prog: -phome/
+    expect:
+      -p: home/
+  - prog: -p
+    expect: user-error
+  id: agnostic_6
+- usage: |+
+    Usage: prog [options]
+
+    --path <path>
+
+  runs:
+  - prog: --path home/
+    expect:
+      --path: home/
+  - prog: --path=home/
+    expect:
+      --path: home/
+  - prog: --pa home/
+    expect:
+      --path: home/
+  - prog: --pa=home/
+    expect:
+      --path: home/
+  - prog: --path
+    expect: user-error
+  id: agnostic_7
+- usage: |+
+    Usage: prog [options]
+
+    -p PATH, --path=<path>  Path to files.
+
+  runs:
+  - prog: -proot
+    expect:
+      --path: root
+  id: agnostic_8
+- usage: |+
+    Usage: prog [options]
+
+       -p --path PATH  Path to files.
+
+  runs:
+  - prog: -p root
+    expect:
+      --path: root
+  - prog: --path root
+    expect:
+      --path: root
+  id: agnostic_9
+- usage: |+
+    Usage: prog [options]
+
+    -p PATH  Path to files [default: ./]
+
+  runs:
+  - prog: ""
+    expect:
+      -p: ./
+  - prog: -phome
+    expect:
+      -p: home
+  id: agnostic_10
+- usage: |+
+    UsAgE: prog [options]
+
+    --path=<files>  Path to files
+                    [dEfAuLt: /root]
+
+  runs:
+  - prog: ""
+    expect:
+      --path: /root
+  - prog: --path=home
+    expect:
+      --path: home
+  id: agnostic_11
+- usage: |+
+    usage: prog [options]
+
+    -a        Add
+    -r        Remote
+    -m <msg>  Message
+
+  runs:
+  - prog: -a -r -m Hello
+    expect:
+      -m: Hello
+      -a: true
+      -r: true
+  - prog: -armyourass
+    expect:
+      -m: yourass
+      -a: true
+      -r: true
+  - prog: -a -r
+    expect:
+      -m:
+      -a: true
+      -r: true
+  id: agnostic_12
+- usage: |+
+    Usage: prog [options]
+
+    --version
+    --verbose
+
+  runs:
+  - prog: --version
+    expect:
+      --verbose: false
+      --version: true
+  - prog: --verbose
+    expect:
+      --verbose: true
+      --version: false
+  - prog: --ver
+    expect: user-error
+  - prog: --verb
+    expect:
+      --verbose: true
+      --version: false
+  id: agnostic_13
+- usage: |+
+    usage: prog [-a -r -m <msg>]
+
+    -a        Add
+    -r        Remote
+    -m <msg>  Message
+
+  runs:
+  - prog: -armyourass
+    expect:
+      -m: yourass
+      -a: true
+      -r: true
+  id: agnostic_14
+- usage: |+
+    usage: prog [-armmsg]
+
+    -a        Add
+    -r        Remote
+    -m <msg>  Message
+
+  runs:
+  - prog: -a -r -m Hello
+    expect:
+      -m: Hello
+      -a: true
+      -r: true
+  id: agnostic_15
+- usage: |+
+    usage: prog -a -b
+
+    -a
+    -b
+
+  runs:
+  - prog: -a -b
+    expect:
+      -a: true
+      -b: true
+  - prog: -b -a
+    expect:
+      -a: true
+      -b: true
+  - prog: -a
+    expect: user-error
+  - prog: ""
+    expect: user-error
+  id: agnostic_16
+- usage: |+
+    usage: prog (-a -b)
+
+    -a
+    -b
+
+  runs:
+  - prog: -a -b
+    expect:
+      -a: true
+      -b: true
+  - prog: -b -a
+    expect:
+      -a: true
+      -b: true
+  - prog: -a
+    expect: user-error
+  - prog: ""
+    expect: user-error
+  id: agnostic_17
+- usage: |+
+    usage: prog [-a] -b
+
+    -a
+    -b
+
+  runs:
+  - prog: -a -b
+    expect:
+      -a: true
+      -b: true
+  - prog: -b -a
+    expect:
+      -a: true
+      -b: true
+  - prog: -a
+    expect: user-error
+  - prog: -b
+    expect:
+      -a: false
+      -b: true
+  - prog: ""
+    expect: user-error
+  id: agnostic_18
+- usage: |+
+    usage: prog [(-a -b)]
+
+    -a
+    -b
+
+  runs:
+  - prog: -a -b
+    expect:
+      -a: true
+      -b: true
+  - prog: -b -a
+    expect:
+      -a: true
+      -b: true
+  - prog: -a
+    expect: user-error
+  - prog: -b
+    expect: user-error
+  - prog: ""
+    expect:
+      -a: false
+      -b: false
+  id: agnostic_19
+- usage: |+
+    usage: prog (-a|-b)
+
+    -a
+    -b
+
+  runs:
+  - prog: -a -b
+    expect: user-error
+  - prog: ""
+    expect: user-error
+  - prog: -a
+    expect:
+      -a: true
+      -b: false
+  - prog: -b
+    expect:
+      -a: false
+      -b: true
+  id: agnostic_20
+- usage: |+
+    usage: prog [ -a | -b ]
+
+    -a
+    -b
+
+  runs:
+  - prog: -a -b
+    expect: user-error
+  - prog: ""
+    expect:
+      -a: false
+      -b: false
+  - prog: -a
+    expect:
+      -a: true
+      -b: false
+  - prog: -b
+    expect:
+      -a: false
+      -b: true
+  id: agnostic_21
+- usage: |+
+    usage: prog <arg>
+
+  runs:
+  - prog: "10"
+    expect:
+      <arg>: "10"
+  - prog: 10 20
+    expect: user-error
+  - prog: ""
+    expect: user-error
+  id: agnostic_22
+- usage: |+
+    usage: prog [<arg>]
+
+  runs:
+  - prog: "10"
+    expect:
+      <arg>: "10"
+  - prog: 10 20
+    expect: user-error
+  - prog: ""
+    expect:
+      <arg>:
+  id: agnostic_23
+- usage: |+
+    usage: prog <kind> <name> <type>
+
+  runs:
+  - prog: 10 20 40
+    expect:
+      <type>: "40"
+      <kind>: "10"
+      <name>: "20"
+  - prog: 10 20
+    expect: user-error
+  - prog: ""
+    expect: user-error
+  id: agnostic_24
+- usage: |+
+    usage: prog <kind> [<name> <type>]
+
+  runs:
+  - prog: 10 20 40
+    expect:
+      <type>: "40"
+      <kind>: "10"
+      <name>: "20"
+  - prog: 10 20
+    expect:
+      <type>:
+      <kind>: "10"
+      <name>: "20"
+  - prog: ""
+    expect: user-error
+  id: agnostic_25
+- usage: |+
+    usage: prog [<kind> | <name> <type>]
+
+  runs:
+  - prog: 10 20 40
+    expect: user-error
+  - prog: 20 40
+    expect:
+      <type>: "40"
+      <kind>:
+      <name>: "20"
+  - prog: ""
+    expect:
+      <type>:
+      <kind>:
+      <name>:
+  id: agnostic_26
+- usage: |+
+    usage: prog (<kind> --all | <name>)
+
+    --all
+
+  runs:
+  - prog: 10 --all
+    expect:
+      --all: true
+      <kind>: "10"
+      <name>:
+  - prog: "10"
+    expect:
+      --all: false
+      <kind>:
+      <name>: "10"
+  - prog: ""
+    expect: user-error
+  id: agnostic_27
+- usage: |+
+    usage: prog [<name> <name>]
+
+  runs:
+  - prog: 10 20
+    expect:
+      <name>:
+      - "10"
+      - "20"
+  - prog: "10"
+    expect:
+      <name>:
+      - "10"
+  - prog: ""
+    expect:
+      <name>: []
+
+  id: agnostic_28
+- usage: |+
+    usage: prog [(<name> <name>)]
+
+  runs:
+  - prog: 10 20
+    expect:
+      <name>:
+      - "10"
+      - "20"
+  - prog: "10"
+    expect: user-error
+  - prog: ""
+    expect:
+      <name>: []
+
+  id: agnostic_29
+- usage: |+
+    usage: prog NAME...
+
+  runs:
+  - prog: 10 20
+    expect:
+      NAME:
+      - "10"
+      - "20"
+  - prog: "10"
+    expect:
+      NAME:
+      - "10"
+  - prog: ""
+    expect: user-error
+  id: agnostic_30
+- usage: |+
+    usage: prog [NAME]...
+
+  runs:
+  - prog: 10 20
+    expect:
+      NAME:
+      - "10"
+      - "20"
+  - prog: "10"
+    expect:
+      NAME:
+      - "10"
+  - prog: ""
+    expect:
+      NAME: []
+
+  id: agnostic_31
+- usage: |+
+    usage: prog [NAME...]
+
+  runs:
+  - prog: 10 20
+    expect:
+      NAME:
+      - "10"
+      - "20"
+  - prog: "10"
+    expect:
+      NAME:
+      - "10"
+  - prog: ""
+    expect:
+      NAME: []
+
+  id: agnostic_32
+- usage: |+
+    usage: prog [NAME [NAME ...]]
+
+  runs:
+  - prog: 10 20
+    expect:
+      NAME:
+      - "10"
+      - "20"
+  - prog: "10"
+    expect:
+      NAME:
+      - "10"
+  - prog: ""
+    expect:
+      NAME: []
+
+  id: agnostic_33
+- usage: |+
+    usage: prog (NAME | --foo NAME)
+
+    --foo
+
+  runs:
+  - prog: "10"
+    expect:
+      NAME: "10"
+      --foo: false
+  - prog: --foo 10
+    expect:
+      NAME: "10"
+      --foo: true
+  - prog: --foo=10
+    expect: user-error
+  id: agnostic_34
+- usage: |+
+    usage: prog (NAME | --foo) [--bar | NAME]
+
+    --foo
+    --bar
+
+  runs:
+  - prog: "10"
+    expect:
+      --bar: false
+      NAME:
+      - "10"
+      --foo: false
+  - prog: 10 20
+    expect:
+      --bar: false
+      NAME:
+      - "10"
+      - "20"
+      --foo: false
+  - prog: --foo --bar
+    expect:
+      --bar: true
+      NAME: []
+
+      --foo: true
+  id: agnostic_35
+- usage: |+
+    Naval Fate.
+
+    Usage:
+      prog ship new <name>...
+      prog ship [<name>] move <x> <y> [--speed=<kn>]
+      prog ship shoot <x> <y>
+      prog mine (set|remove) <x> <y> [--moored|--drifting]
+      prog -h | --help
+      prog --version
+
+    Options:
+      -h --help     Show this screen.
+      --version     Show version.
+      --speed=<kn>  Speed in knots [default: 10].
+      --moored      Mored (anchored) mine.
+      --drifting    Drifting mine.
+
+  runs:
+  - prog: ship Guardian move 150 300 --speed=20
+    expect:
+      shoot: false
+      --moored: false
+      --drifting: false
+      move: true
+      --speed: "20"
+      mine: false
+      new: false
+      --version: false
+      set: false
+      remove: false
+      <name>:
+      - Guardian
+      ship: true
+      <x>: "150"
+      <y>: "300"
+      --help: false
+  id: agnostic_36
+- usage: |+
+    usage: prog --hello
+
+  runs:
+  - prog: --hello
+    expect:
+      --hello: true
+  id: agnostic_37
+- usage: |+
+    usage: prog [--hello=<world>]
+
+  runs:
+  - prog: ""
+    expect:
+      --hello:
+  - prog: --hello wrld
+    expect:
+      --hello: wrld
+  id: agnostic_38
+- usage: |+
+    usage: prog [-o]
+
+  runs:
+  - prog: ""
+    expect:
+      -o: false
+  - prog: -o
+    expect:
+      -o: true
+  id: agnostic_39
+- usage: |+
+    usage: prog [-opr]
+
+  runs:
+  - prog: -op
+    expect:
+      -o: true
+      -p: true
+      -r: false
+  id: agnostic_40
+- usage: |+
+    usage: prog --aabb | --aa
+
+  runs:
+  - prog: --aa
+    expect:
+      --aa: true
+      --aabb: false
+  id: agnostic_41
+- usage: |+
+    usage: prog [--file=<f>]
+
+  runs:
+  - prog: ""
+    expect:
+      --file:
+  id: agnostic_42
+- usage: |+
+    usage: prog [--file=<f>]
+
+    --file <a>
+
+  runs: []
+
+  id: agnostic_43
+- usage: |+
+    Usage: tau [-a <host:port>]
+
+    -a, --address <host:port>  TCP address [default: localhost:6283].
+
+  runs: []
+
+  id: agnostic_44
+- usage: |+
+    Usage: prog -v
+
+  runs:
+  - prog: -v
+    expect:
+      -v: true
+  id: agnostic_45
+- usage: |+
+    Usage: prog [-v -v]
+
+  runs:
+  - prog: ""
+    expect:
+      -v: 0
+  - prog: -v
+    expect:
+      -v: 1
+  - prog: -vv
+    expect:
+      -v: 2
+  id: agnostic_46
+- usage: |+
+    Usage: prog -v ...
+
+  runs:
+  - prog: ""
+    expect: user-error
+  - prog: -v
+    expect:
+      -v: 1
+  - prog: -vv
+    expect:
+      -v: 2
+  - prog: -vvvvvv
+    expect:
+      -v: 6
+  id: agnostic_47
+- usage: |+
+    Usage: prog [-v | -vv | -vvv]
+
+    This one is probably most readable user-friednly variant.
+
+  runs:
+  - prog: ""
+    expect:
+      -v: 0
+  - prog: -v
+    expect:
+      -v: 1
+  - prog: -vv
+    expect:
+      -v: 2
+  - prog: -vvvv
+    expect: user-error
+  id: agnostic_48
+- usage: |+
+    usage: prog [--ver --ver]
+
+  runs: []
+
+  id: agnostic_49
+- usage: |+
+    usage: prog [go]
+
+  runs:
+  - prog: go
+    expect:
+      go: true
+  id: agnostic_50
+- usage: |+
+    usage: prog [go go]
+
+  runs:
+  - prog: ""
+    expect:
+      go: 0
+  - prog: go
+    expect:
+      go: 1
+  - prog: go go
+    expect:
+      go: 2
+  - prog: go go go
+    expect: user-error
+  id: agnostic_51
+- usage: |+
+    usage: prog go...
+
+  runs: []
+
+  id: agnostic_52
+- usage: |+
+    usage: prog --long=<arg> ...
+
+  runs:
+  - prog: --long one
+    expect:
+      --long:
+      - one
+  id: agnostic_53
+- usage: |+
+    usage: prog (go <direction> --speed=<km/h>)...
+
+  runs:
+  - prog: go left --speed=5  go right --speed=9
+    expect:
+      go: 2
+      <direction>:
+      - left
+      - right
+      --speed:
+      - "5"
+      - "9"
+  id: agnostic_54
