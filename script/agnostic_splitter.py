@@ -12,7 +12,7 @@ for x in tree.body:
 
 index = 0
 
-cases = []
+cases = {}
 iii = 1
 for fixture in docstring.split('r"""'):
     doc, _, body = fixture.partition('"""')
@@ -27,7 +27,7 @@ for fixture in docstring.split('r"""'):
           runs += [{"expect": py_expect, "prog": argv}]
         except:
           pass
-    cases += [{"id": ("agnostic_%d" % iii), "usage": doc, "runs": runs}]
+    cases["agnostic_%d" % iii] = {"usage": doc, "runs": runs}
     iii+=1
 
 print json.dumps(cases)
