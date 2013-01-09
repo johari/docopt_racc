@@ -39,13 +39,15 @@ YAML::load(suite_yaml_result).cases.each do |kase|
     test_banner = test_name.yellow
     test_banner += " run " + run_id.to_s.blue.bold if run_id
     puts "#{status} #{test_banner}"
-
     if options[:choose] and !test.pass? then
+      usage = test_cases[test_name]["usage"]
+      parser = Docopt::Parser.new
+      puts "PEBBLE: %s" % parser.parse(usage)
       r = test_cases[test_name]["runs"][run_id.to_i]
       puts ("EXPECTED: " + r["expect"].to_json).magenta.bold
       puts ("MESSGAGE: ".red.bold) + test.message.magenta.bold
       puts "ARGS : ".red.bold + ("prog %s" % r["prog"]).to_s.blue.bold
-      puts test_cases[test_name]["usage"].yellow.bold
+      puts usage.yellow.bold
     end
   end
 end
