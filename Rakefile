@@ -19,12 +19,11 @@ task :parser do
 end
 
 task :lexer do
-  %w(usage options).each do |what|
+  %w(usage).each do |what|
     sh "ragel -R racc/lexer/#{what}.rb.rl -o lib/docopt/parser/#{what}_lexer.rb"
   end
 end
 
 task :dot do
-  sh "ragel -pV racc/lexer/options.rb.rl | dot -Tpng > /tmp/options.png"
   sh "ragel -pV racc/lexer/usage.rb.rl | dot -Tpng > /tmp/usage.png"
 end

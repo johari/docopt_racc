@@ -1,5 +1,4 @@
 require File.expand_path("../parser/usage_lexer.rb", __FILE__)
-require File.expand_path("../parser/options_lexer.rb", __FILE__)
 
 module Docopt
   class Tokenizer
