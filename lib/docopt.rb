@@ -3,6 +3,7 @@ module Docopt
 end
 
 require File.expand_path("../docopt/parser/docopt.rb", __FILE__)
+require File.expand_path("../docopt/options_block.rb", __FILE__)
 
 module Docopt
 

@@ -1,6 +1,10 @@
-require File.expand_path("../options_block/lexer.rb", __FILE__)
+require File.expand_path("../options_block/parser.rb", __FILE__)
 
 module Docopt
-  module OptionsBlock
+  class << self
+    def parse_options str
+      parser = Docopt::OptionsBlock::Parser.new(str)
+      parser.parse()
+    end
   end
 end

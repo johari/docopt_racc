@@ -6,10 +6,12 @@ module Docopt
       @data[ts...te].pack("c*")
     end
 
+    attr_reader :optype
+
     def initialize(data)
       @q = []
       @data = data.unpack("c*")
-      @optype = parse_options
+      @optype = Docopt::parse_options data
     end
 
     def is_arged?(option, type)
