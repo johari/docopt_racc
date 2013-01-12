@@ -10,7 +10,7 @@ module Docopt
   class LanguageError < StandardError
   end
 
-  class ParseError < StandardError
+  class ARGVError < StandardError
   end
 
   class God
@@ -23,7 +23,7 @@ module Docopt
     end
 
     def alt(message)
-      raise ParseError, message
+      raise ARGVError, message
     end
   end
 
