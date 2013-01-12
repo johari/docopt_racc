@@ -18,6 +18,16 @@ module Docopt
         assert_equal [], tokens_for("")
       end
 
+      def test_raw_without_options_directive
+        expected = [[:t_optline_begin, nil],
+                      [:t_short_opt, "-a"],
+                    [:t_optline_begin, nil],
+                      [:t_short_opt, "-r"],
+                    [:t_optline_begin, nil],
+                      [:t_short_opt, "-m"], [:t_delim, " "], [:t_arg, "<msg>"]]
+        assert_equal expected, tokens_for(load_raw "without_options_directive")
+      end
+
       def test_raw_any_options
         expected = [[:t_optline_begin, nil],
                       [:t_short_opt, "-h"], [:t_delim, " "], [:t_long_opt, "--help"],

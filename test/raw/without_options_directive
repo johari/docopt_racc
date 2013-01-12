@@ -1,0 +1,5 @@
+usage: prog [options]
+
+  -a        Add
+  -r        Remote
+  -m <msg>  Message
