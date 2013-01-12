@@ -11,15 +11,15 @@ rule
     : synopsis { result = val[0] }
 
   synopsis
-    : synopses t_endl
+    : synopses
         { result = val[0] }
-    | synopses t_endl synopsis
+    | synopses synopsis
         { result = @machine.new_node(:either, [val[0], val[2]]) }
 
   synopses
-    : t_prog_name mutex
-        { result = val[1] }
-    | t_prog_name
+    : t_synopses_begin t_prog_name mutex
+        { result = val[2] }
+    | t_synopses_begin t_prog_name
         { result = @machine.new_node(:null, nil) }
 
   mutex
@@ -83,34 +83,35 @@ end
 
 require File.expand_path("../../machine.rb", __FILE__)
 require File.expand_path("../../options_block.rb", __FILE__)
+require File.expand_path("../lexer.rb", __FILE__)
 
 module Docopt
+module UsageBlock
 ---- inner
 
-  def initialize()
+  def initialize str
+    @str = str
   end
 
-  def parse(str)
-    str += "\n"
-    options = Docopt::parse_options(str)
+  def parse
+    @str += "\n"
+    options = Docopt::parse_options(@str)
     @machine = Docopt::Machine.new(options)
-    @q = tokenizer.tokenize()
-    @consumed = []
-    # $stderr.puts @q.to_s
+    @lexer = Lexer.new(@str)
     do_parse
   end
 
   def next_token
-    res = @q.shift
-    @consumed.push res
-    # puts res.to_s
-    res
+    r = @lexer.next_token
+    # puts r.to_s
+    r
   end
 
   def on_error(error_token_id, error_value, value_stack)
-    raise Docopt::LanguageError, "error near %s, \"%s\"" % \
-      [(@consumed[-5..-1] || []).map { |x| x[1] }.to_s, error_value]
+    raise Docopt::LanguageError, "error \"%s\"" % \
+      [error_value]
   end
 
 ---- footer
+end
 end

@@ -1,3 +1,3 @@
-lib/docopt/parser/*
 lib/docopt/options_block/parser.rb
+lib/docopt/usage_block/parser.rb
 Gemfile.lock

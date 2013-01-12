@@ -2,7 +2,7 @@ module Docopt
   VERSION = '0.5.0'
 end
 
-require File.expand_path("../docopt/parser/docopt.rb", __FILE__)
+require File.expand_path("../docopt/usage_block.rb", __FILE__)
 require File.expand_path("../docopt/options_block.rb", __FILE__)
 
 module Docopt
@@ -28,9 +28,14 @@ module Docopt
   end
 
   class << self
+    def parse str
+      parser = Docopt::UsageBlock::Parser.new(str)
+      r = parser.parse()
+      r
+    end
+
     def docopt(usage, args=ARGV)
-      parser = Parser.new
-      pebble = parser.parse(usage)
+      pebble = parse usage
       god = God.new
       pebble.pass = god
 
