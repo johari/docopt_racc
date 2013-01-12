@@ -19,7 +19,14 @@ TestParser.instance_eval do
       self.send :define_method, \
         ("test_%s_run_%d" % [id, index]).to_sym do
           args = Shellwords.shellwords(run["prog"])
-          assert_equal run["expect"], Docopt::docopt(test_case["usage"], args)
+          case run["expect"]
+          when "user-error"
+            assert_raises Docopt::ARGVError do
+              Docopt::docopt(test_case["usage"], args)
+            end
+          else
+            assert_equal run["expect"], Docopt::docopt(test_case["usage"], args)
+          end
       end
     end
 
@@ -31,7 +38,7 @@ TestParser.instance_eval do
         assert_equal test_case["tokens"], tokens
       end
       if test_case["should"] == "fail" then
-        assert_raise Docopt::LanguageError do
+        assert_raises Docopt::LanguageError do
           parser = Docopt::Parser.new
           pebble = parser.parse(test_case["usage"])
         end
