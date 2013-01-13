@@ -6,7 +6,8 @@ module Docopt
       SHORT_OPT = /-[a-z]/i
       LONG_OPT = /--[a-z][a-z-]+/i
       DELIM = /(, *)| +/
-      ARG = /<[a-z]+>|[A-Z]+/
+      VAR = /<[a-z]+>|[A-Z]+/
+      ARG = /[a-z]+/
       LDOTS = /\.\.\./
 
       def initialize str, machine
@@ -74,8 +75,6 @@ module Docopt
           elsif text = @ss.scan(/-[a-z]/) then
             @state = :short_stack
             [:t_short_opt, text]
-          elsif text = @ss.scan(/[a-z]+/) then
-            [:t_cmd, text]
           elsif text = @ss.scan(LDOTS) then
             [:t_ldots, text]
           elsif text = @ss.scan(LONG_OPT) then
@@ -84,6 +83,8 @@ module Docopt
             [text, text]
           elsif text = @ss.scan(ARG) then
             [:t_arg, text]
+          elsif text = @ss.scan(VAR) then
+            [:t_var, text]
           elsif text = @ss.scan(/\|/) then
             [text, text]
           elsif text = @ss.scan(/\n/) then

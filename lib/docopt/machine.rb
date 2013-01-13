@@ -397,15 +397,20 @@ module Docopt
 
         def move(alt, cons, args, data)
           super
-          if args.length > 0 then
-            new_data = data.clone
+          start = 0
+          args.each do |arg|
+            (start +=1; next) if arg[0] == "-"
+            break
+          end
+          if args[start] then
+            new_data = data.dup
             case @machine.type[@value]
             when :list
-              new_data[@value] += [args[0]]
+              new_data[@value] += [args[start]]
             when :variable
-              new_data[@value] = args[0]
+              new_data[@value] = args[start]
             end
-            @pass.move(alt, cons + [args[0]], args[1..-1], new_data)
+            @pass.move(alt, cons + [args[start]], args[0...start] + args[(start+1)..-1], new_data)
           else
             alt.alt "expected variable %s %s" % [@value, [cons, args].to_s]
           end
@@ -417,7 +422,7 @@ module Docopt
         end
 
         def to_s
-          '[":arg", %s]' % @value
+          '[":var", %s]' % @value
         end
       end
 
