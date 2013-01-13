@@ -42,10 +42,12 @@ YAML::load(suite_yaml_result).cases.each do |kase|
     if options[:choose] and !test.pass? then
       usage = test_cases[test_name]["usage"]
       puts "PEBBLE: %s" % Docopt::parse(usage)
-      r = test_cases[test_name]["runs"][run_id.to_i]
-      puts ("EXPECTED: " + r["expect"].to_json).magenta.bold
-      puts ("MESSGAGE: ".red.bold) + test.message.magenta.bold
-      puts "ARGS : ".red.bold + ("prog %s" % r["prog"]).to_s.blue.bold
+      if run_id then
+        r = test_cases[test_name]["runs"][run_id.to_i]
+        puts ("EXPECTED: " + r["expect"].to_json).magenta.bold
+        puts ("MESSGAGE: ".red.bold) + test.message.magenta.bold
+        puts "ARGS : ".red.bold + ("prog %s" % r["prog"]).to_s.blue.bold
+      end
       puts usage.yellow.bold
     end
   end
