@@ -15,11 +15,17 @@ stacked_short_opt:
     Options:
     -r <baz>  qux quux.
 
+  pebble:
+    - "foo"
+    -
+      - [":optional", [":short_opt", "-b"]]
+      - [":optional", [":short_opt", "-a"]]
+    - [":short_opt", "-r", "<baz>"]
   runs:
     - prog: -rab foo
       expect: {"foo": true, "-r": "ab", "-a": false, "-b": false}
-    - prog: -abrba foo
-      expect: {"foo": true, "-r": "ab", "-a": true, "-b": false}
+    - prog: -arba foo
+      expect: {"foo": true, "-r": "ba", "-a": true, "-b": false}
     - prog: -bar foo
       expect: "user-error"
       because: "-r requires argument"
@@ -39,16 +45,16 @@ stacked_short_opt_without_arg:
   pebble:
     - "foo"
     -
-      - ":optional"
-      - [":short_opt", "-b"]
-      - [":short_opt_with_arg", "-r", "<baz>"]
+      - [":optional", [":short_opt", "-b"]]
+      - [":optional", [":short_opt", "-r", "<baz>"]]
     -
       - ":optional"
-      - [":short_opt", "-a"]
-      - [":arg", "<qux>"]
+      -
+        - [":short_opt", "-a"]
+        - [":arg", "<qux>"]
   runs:
     - prog: foo -rab
-      expect: {"-r": "ab", "-a": false, "-b": false, "<qux>": null}
+      expect: {"foo": true, "-r": "ab", "-a": false, "-b": false, "<qux>": null}
     - prog: foo -abrba
       expect: "user-error"
       because: "expected <qux>"
@@ -57,11 +63,15 @@ stacked_short_opt_without_arg:
       because: "-r requires argument"
     - prog: foo -r -a -b
       expect: "user-error"
-      because: "-r requries argument"
+    - prog: foo -r me -a -b
+      expect: "user-error"
+      because: "expected <qux>"
+    - prog: foo x -r me -a
+      expect: {"foo": true, "-r": "me", "-a": true, "-b": false, "<qux>": "x"}
     - prog: foo -ar baz qux -b
-      expect: {"-r": "baz", "-a": true, "-b": true, "<qux>": "qux"}
+      expect: {"foo": true, "-r": "baz", "-a": true, "-b": true, "<qux>": "qux"}
     - prog: foo -a -r baz qux
-      expect: {"-r": "baz", "-a": true, "-b": false, "<qux>": "qux"}
+      expect: {"foo": true, "-r": "baz", "-a": true, "-b": false, "<qux>": "qux"}
 
 stacked_short_opt_with_arg:
   usage: |+
@@ -69,7 +79,7 @@ stacked_short_opt_with_arg:
 
     Options:
     -r <baz>  qux quux.
-    -a <qux>  i'm out of foobar numbers.
+    -a <qux>  i'm out of foobar numerals.
 
   pebble:
     - "foo"
@@ -82,11 +92,11 @@ stacked_short_opt_with_arg:
       - [":short_opt_with_arg", "-a", "<qux>"]
   runs:
     - prog: foo -rab
-      expect: {"-r": "ab", "-a": null, "-b": false}
+      expect: {"foo": true, "-r": "ab", "-a": false, "-b": false}
     - prog: foo -abrba
-      expect: {"-r": null, "-a": "brba", "-b": false}
+      expect: {"foo": true, "-r": null, "-a": "brba", "-b": false}
     - prog: foo -bar
-      expect: {"-b": true, "-a": "r", "-r": null}
+      expect: {"foo": true, "-b": true, "-a": "r", "-r": null}
     - prog: foo -r -a -b
       expect: "user-error"
       because: "-r requires argument"
