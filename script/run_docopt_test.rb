@@ -17,9 +17,9 @@ OptionParser.new do |opts|
 end.parse!
 
 require "open3"
-parser_test_path = File.expand_path("../../test/parser_test.rb", __FILE__)
+parser_test_path = File.expand_path("../../test/usage_block_test.rb", __FILE__)
 suite_yaml_result = ""
-Open3.popen3("turn #{parser_test_path} -M" +\
+Open3.popen3("turn -Itest #{parser_test_path} -M" +\
               (options[:choose] ? "-n #{options[:choose]}" : "")) do |i,o,e,t|
   suite_yaml_result = o.read
 end
@@ -41,8 +41,7 @@ YAML::load(suite_yaml_result).cases.each do |kase|
     puts "#{status} #{test_banner}"
     if options[:choose] and !test.pass? then
       usage = test_cases[test_name]["usage"]
-      parser = Docopt::Parser.new
-      puts "PEBBLE: %s" % parser.parse(usage)
+      puts "PEBBLE: %s" % Docopt::parse(usage)
       r = test_cases[test_name]["runs"][run_id.to_i]
       puts ("EXPECTED: " + r["expect"].to_json).magenta.bold
       puts ("MESSGAGE: ".red.bold) + test.message.magenta.bold
