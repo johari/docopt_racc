@@ -1,7 +1,8 @@
 require "minitest/autorun"
 require "yaml"
 require "shellwords"
-require File.expand_path("../../lib/docopt.rb", __FILE__)
+require "test_helper"
+require "docopt"
 
 
 class TestParser < MiniTest::Unit::TestCase
@@ -31,19 +32,16 @@ TestParser.instance_eval do
 
     self.send :define_method, ("test_%s" % id).to_sym do
       if test_case.include? "tokens" then
-        tokenizer = Docopt::Tokenizer.new(test_case["usage"])
-        tokens = tokenizer.tokenize()
-        tokens.map! { |x| x[1] }
-        assert_equal test_case["tokens"], tokens
+        lexer = Docopt::UsageBlock::Lexer.new(test_case["usage"])
+        assert_equal test_case["tokens"],\
+          lexer.tokens.map! { |x| x[1] }.keep_if { |x| x }
       end
       if test_case["should"] == "fail" then
         assert_raises Docopt::LanguageError do
-          parser = Docopt::Parser.new
-          pebble = parser.parse(test_case["usage"])
+          pebble = Docopt::parse(test_case["usage"])
         end
       elsif test_case.include? "pebble"
-        parser = Docopt::Parser.new
-        pebble = parser.parse(test_case["usage"])
+        pebble = Docopt::parse(test_case["usage"])
         assert_equal test_case["pebble"], YAML::load(pebble.to_s)
       end
     end
