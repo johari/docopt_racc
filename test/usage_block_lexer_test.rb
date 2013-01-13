@@ -7,11 +7,7 @@ module Docopt
     class TestUsageBlockLexer < MiniTest::Unit::TestCase
       def tokens_for str
         lexer = Lexer.new str
-        res = []
-        while (t = lexer.next_token) do
-          res.push t
-        end
-        res
+        lexer.tokens
       end
 
       def test_raw_naval_fate

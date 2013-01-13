@@ -17,6 +17,14 @@ module Docopt
         @ignore_rest_of_line_ret = nil
       end
 
+      def tokens
+        res = []
+        while (t = next_token) do
+          res.push t
+        end
+        res
+      end
+
       def next_token
         return nil if @ss.eos?
 
