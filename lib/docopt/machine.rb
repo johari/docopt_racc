@@ -430,15 +430,20 @@ module Docopt
 
         def move(alt, cons, args, data)
           super
-          if args[0] == @value then
+          start = 0
+          args.each do |arg|
+            (start +=1; next) if arg[0] == "-"
+            break
+          end
+          if args[start] == @value then
             new_data = data.clone
             case @machine.type[@value]
             when :plural
-              new_data[args[0]] += 1
+              new_data[args[start]] += 1
             when :singular
-              new_data[args[0]] = true
+              new_data[args[start]] = true
             end
-            @pass.move(alt, cons + [args[0]], args[1..-1], new_data)
+            @pass.move(alt, cons + [args[start]], args[0...start] + args[(start+1)..-1], new_data)
           else
             alt.alt "expected %s" % @value
           end
