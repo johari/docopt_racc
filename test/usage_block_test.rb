@@ -9,10 +9,7 @@ class TestParser < MiniTest::Unit::TestCase
 end
 
 TestParser.instance_eval do
-  test_cases = File.open \
-    File.expand_path("../test_cases.yaml", __FILE__)
-  test_cases = YAML::load(test_cases.read)
-  test_cases.each_pair do |id, test_case|
+  TEST_CASES.each_pair do |id, test_case|
     test_case["runs"] ||= []
 
     test_case["runs"].each_with_index do |run, index|
