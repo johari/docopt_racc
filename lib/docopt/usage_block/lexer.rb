@@ -55,7 +55,12 @@ module Docopt
           end
         when :short_stack
           if text = @ss.scan(/[a-z]/) then
-            [:t_short_opt, "-#{text}"]
+            opt = "-#{text}"
+            if @machine.is_arged? opt then
+              [:t_short_opt_arged, opt]
+            else
+              [:t_short_opt, opt]
+            end
           else
             @state = :new_cdr
             next_token
@@ -74,7 +79,9 @@ module Docopt
             [text, text]
           elsif text = @ss.scan(/-[a-z]/) then
             @state = :short_stack
-            [:t_short_opt, text]
+            @ss.unscan
+            @ss.scan /-/
+            next_token
           elsif text = @ss.scan(LDOTS) then
             [:t_ldots, text]
           elsif text = @ss.scan(LONG_OPT) then
