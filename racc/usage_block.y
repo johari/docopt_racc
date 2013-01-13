@@ -65,7 +65,7 @@ rule
 
   arg_group
     : '(' mutex ')'
-        { result = val[1] }
+        { result = @machine.new_node(:group, val[1]) }
     | '[' mutex ']'
         { #HACK
           result = @machine.new_node(:optional, val[1])

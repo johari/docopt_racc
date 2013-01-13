@@ -37,7 +37,7 @@ stacked_short_opt:
       because: "-r requires argument"
 stacked_short_opt_without_arg:
   usage: |+
-    Usage: prog foo [-br <baz>] [-a <qux>]
+    Usage: prog foo [-br <baz>] [(-a <qux>)]
 
     Options:
     -r <baz>  qux quux.
@@ -50,8 +50,10 @@ stacked_short_opt_without_arg:
     -
       - ":optional"
       -
-        - [":short_opt", "-a"]
-        - [":arg", "<qux>"]
+        - ":group"
+        -
+          - [":short_opt", "-a"]
+          - [":var", "<qux>"]
   runs:
     - prog: foo -rab
       expect: {"foo": true, "-r": "ab", "-a": false, "-b": false, "<qux>": null}
@@ -116,37 +118,43 @@ either:
     Usage: prog (either this | or this long one | or this one)
 
   pebble:
-  - ":either"
-  - ["either", "this"]
-  - ["or", "this", "long", "one"]
-  - ["or", "this", "one"]
+  - ":group"
+  -
+    - ":either"
+    - ["either", "this"]
+    - ["or", "this", "long", "one"]
+    - ["or", "this", "one"]
 grouped_either:
   usage: |+
     Usage: prog (either this | or (this long one | this one))
 
   pebble:
-  - ":either"
-  - ["either", "this"]
+  - ":group"
   -
-    - "or"
+    - ":either"
+    - ["either", "this"]
     -
-      - ":either"
-      - ["this", "long", "one"]
-      - ["this", "one"]
+      - "or"
+      -
+        - ":group"
+        -
+          - ":either"
+          - ["this", "long", "one"]
+          - ["this", "one"]
 dp127:
   usage: |+
     Usage: prog (-h | -v [ --file <f> ])
 
   pebble:
-  - ":either"
-  - [":short_opt", "-h"]
+  - ":group"
   -
-    - [":short_opt", "-v"]
+    - ":either"
+    - [":short_opt", "-h"]
     -
-      - ":optional"
+      - [":short_opt", "-v"]
       -
-        - [":long_opt", "--file"]
-        - [":arg", "<f>"]
+        - [":optional", [":long_opt", "--file"]]
+        - [":optional", [":var", "<f>"]]
 dp137:
   usage: |+
     Usage: prog (n [m | (k | l)] | o p)
@@ -161,13 +169,15 @@ dp137:
       ")"]
 
   pebble:
-  - ":either"
+  - ":group"
   -
-    - "n"
+    - ":either"
     -
-      - ":optional"
-      - [":either", "m", "k", "l"]
-  - ["o", "p"]
+      - "n"
+      -
+        - ":optional"
+        - [":either", "m", [":group", [":either", "k", "l"]]]
+    - ["o", "p"]
 naval_fate:
   usage: |+
     Naval Fate.
@@ -595,8 +605,11 @@ agnostic_19:
 
   pebble:
     - ":optional"
-    - [":short_opt", "-a"]
-    - [":short_opt", "b"]
+    -
+      - ":group"
+      -
+        - [":short_opt", "-a"]
+        - [":short_opt", "-b"]
 
   runs:
   - prog: -a -b
@@ -874,6 +887,7 @@ agnostic_20:
     -a
     -b
 
+  pebble: [":group", [":either", [":short_opt", "-a"], [":short_opt", "-b"]]]
   tokens: ["prog", "(", "-a", "|", "-b", ")"]
   runs:
   - prog: -a -b
