@@ -9,11 +9,11 @@ module Docopt
       ARG = /<[a-z]+>|[A-Z]+/
       LDOTS = /\.\.\./
 
-      def initialize str
+      def initialize str, machine
         @ss = StringScanner.new(str)
         @state = nil
         @prog_name = nil
-
+        @machine = machine
         @ignore_rest_of_line_ret = nil
       end
 

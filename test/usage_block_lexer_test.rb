@@ -1,12 +1,13 @@
 require "minitest/autorun"
 require "test_helper"
 require "docopt/usage_block/lexer"
+require "docopt/machine"
 
 module Docopt
   module UsageBlock
     class TestUsageBlockLexer < MiniTest::Unit::TestCase
       def tokens_for str
-        lexer = Lexer.new str
+        lexer = Lexer.new str, Docopt::Machine.new
         lexer.tokens
       end
 

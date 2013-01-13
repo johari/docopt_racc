@@ -97,7 +97,7 @@ module UsageBlock
     @str += "\n"
     options = Docopt::parse_options(@str)
     @machine = Docopt::Machine.new(options)
-    @lexer = Lexer.new(@str)
+    @lexer = Lexer.new(@str, @machine)
     do_parse
   end
 

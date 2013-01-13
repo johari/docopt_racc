@@ -29,7 +29,8 @@ TestParser.instance_eval do
 
     self.send :define_method, ("test_%s" % id).to_sym do
       if test_case.include? "tokens" then
-        lexer = Docopt::UsageBlock::Lexer.new(test_case["usage"])
+        machine = Docopt::Machine.new
+        lexer = Docopt::UsageBlock::Lexer.new(test_case["usage"], machine)
         assert_equal test_case["tokens"],\
           lexer.tokens.map! { |x| x[1] }.keep_if { |x| x }
       end
