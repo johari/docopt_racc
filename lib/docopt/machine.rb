@@ -15,8 +15,32 @@ module Docopt
       @options = options
     end
 
+    def is_arged? o
+      if !@options.include? o
+        false
+      else
+        if @options[o].include? :alt
+          is_arged? @options[o][:alt]
+        else
+          @options[o].include? :arg
+        end
+      end
+    end
+
+    def arg_of o
+      if !@options.include? o
+        nil
+      else
+        if @options[o].include? :alt
+          arg_of @options[o][:alt]
+        else
+          @options[o][:arg]
+        end
+      end
+    end
+
     def short_options
-      @options.keys.map { |x| x[0] }.compact
+      @options.keys.select { |x| x =~ /^-[a-z]$/ }.compact
     end
 
     def new_node(type, value)
@@ -185,7 +209,7 @@ module Docopt
         def pluralize
           t = @machine.type[@value].to_s
           @machine.type[@value] = t.sub("singular", "plural").to_sym
-          if t =~ /arged/ then
+          if @machine.is_arged? @opt_name then
             @machine.data[@value] = []
           else
             @machine.data[@value] = 0
@@ -235,40 +259,94 @@ module Docopt
       class ShortOption < Option
         def initialize(value, machine)
           super
-          if value.kind_of? String then
-            @machine.type[value] ||= :singular_short_option
-            @machine.data[value] ||= false
-          elsif value.kind_of? Array then
-            @machine.type[value] ||= :singular_arged_short_option
+          @opt_name = @value
+          @machine.type[value] ||= :singular_short_option
+          if @machine.is_arged? @opt_name then
             @machine.data[value] ||= nil
+          else
+            @machine.data[value] ||= false
           end
-          @opt_name = @value[1..-1]
+        end
+
+        def name_in_data
+          opt = @machine.options[@opt_name]
+          if opt and opt.include? :alt then
+            opt[:alt]
+          else
+            @opt_name
+          end
         end
 
         def move(alt, cons, args, data)
           new_data = data.clone
-          consed = ""
           found = false
-          new_args = args.collect do |arg|
-            if not found and arg =~ /(-[a-z]*)#{@opt_name}([a-z]*)/ then
-              found = true
-              consed = "-#{@opt_name}"
-              new_data[consed] = true
-              res = [$1,$2].join
-              case res
-              when "-"
-                nil
-              else
-                res
+          args.each_with_index do |arg, args_index|
+            if arg[0] == "-" then
+              arg[0..-1].each_char.each_with_index do |short, index|
+                break if found
+                next if index == 0
+                cur_opt = "-#{short}"
+                if @machine.is_arged? cur_opt then
+                  if cur_opt == @opt_name then
+                    if @machine.is_arged? cur_opt then
+                      if index == arg.length-1 then
+                        if args_index == args.length-1 then
+                          return alt.alt("%s need argument" % @opt_name)
+                        else
+                          val = args[args_index+1]
+                          if val[0] == "-" then
+                            return alt.alt("%s need argument" % @opt_name)
+                          end
+                          new_args = args[0...args_index]
+                          new_args = [arg[0...index]] if arg[0...index] != "-"
+                          aaron = args[(args_index+2)..-1]
+                          new_args += aaron if aaron
+                          new_data[name_in_data] = val
+                        end
+                      else
+                        val = arg[(index+1)..-1]
+                        if val[0]== "-" then
+                          return alt.alt("%s needs argument" % @opt_name)
+                        end
+                        if arg[0..(index-1)] == "-" then
+                          new_args = args[0...args_index] + args[(args_index+1)..-1]
+                        else
+                          new_args = args[0...args_index] + [arg[0...index]] + args[(args_index+1)..-1]
+                        end
+                        new_data[name_in_data] = val
+                      end
+                      return @pass.move(alt, cons+[@opt_name, val], new_args, new_data)
+                    end
+                  else
+                    break
+                  end
+                else
+                  if cur_opt == @opt_name then
+                    new_data[name_in_data] = true
+                    new_arg = arg[0...index] + arg[(index+1)..-1]
+                    if new_arg == "-" then
+                      new_args = args[0...args_index] + args[(args_index+1)..-1]
+                    else
+                      new_args = args[0...args_index]\
+                               + [new_arg]\
+                               + args[(args_index+1)..-1]
+                    end
+                    return @pass.move(alt, cons + [@opt_name], new_args, new_data)
+                  end
+                end
               end
             else
-              arg
+              next
             end
-          end.compact
-          if found then
-            @pass.move(alt, cons + [consed], new_args, new_data)
+          end
+          alt.alt("expected %s" % @opt_name)
+        end
+
+        def to_s
+          if @machine.is_arged? @opt_name then
+            '[":short_opt", "%s", "%s"]' % [@opt_name, @machine.arg_of(@opt_name)]
           else
-            alt.alt("expected %s" % @value)
+            super
           end
         end
       end
