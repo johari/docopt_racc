@@ -2,20 +2,6 @@ require "minitest/autorun"
 require "test_helper"
 require "docopt/machine"
 
-class Catcher
-  def initialize &asserter
-    @asserter = asserter
-  end
-
-  def move alt, cons, args, data
-    @asserter.call(alt, cons, args, data)
-  end
-
-  def alt reason
-    raise reason
-  end
-end
-
 module Docopt
   class TestShortOptionPebble < MiniTest::Unit::TestCase
     def test_short_option_without_argument
