@@ -86,15 +86,14 @@ stacked_short_opt_with_arg:
   pebble:
     - "foo"
     -
-      - ":optional"
-      - [":short_opt", "-b"]
-      - [":short_opt_with_arg", "-r", "<baz>"]
+      - [":optional", [":short_opt", "-b"]]
+      - [":optional", [":short_opt", "-r", "<baz>"]]
     -
       - ":optional"
-      - [":short_opt_with_arg", "-a", "<qux>"]
+      - [":short_opt", "-a", "<qux>"]
   runs:
     - prog: foo -rab
-      expect: {"foo": true, "-r": "ab", "-a": false, "-b": false}
+      expect: {"foo": true, "-r": "ab", "-a": null, "-b": false}
     - prog: foo -abrba
       expect: {"foo": true, "-r": null, "-a": "brba", "-b": false}
     - prog: foo -bar
