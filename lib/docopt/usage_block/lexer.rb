@@ -64,13 +64,13 @@ module Docopt
           if text = @ss.scan(/\[options\]/) then
             [:t_options_shorthand, text]
           elsif text = @ss.scan(/\[/) then
-            [:t_lbrace, text]
+            [text, text]
           elsif text = @ss.scan(/\]/) then
-            [:t_rbrace, text]
+            [text, text]
           elsif text = @ss.scan(/\(/) then
-            [:t_lparen, text]
+            [text, text]
           elsif text = @ss.scan(/\)/) then
-            [:t_rparen, text]
+            [text, text]
           elsif text = @ss.scan(/-[a-z]/) then
             @state = :short_stack
             [:t_short_opt, text]
@@ -81,11 +81,11 @@ module Docopt
           elsif text = @ss.scan(LONG_OPT) then
             [:t_long_opt, text]
           elsif text = @ss.scan(/\=/) then
-            [:t_eq, text]
+            [text, text]
           elsif text = @ss.scan(ARG) then
             [:t_arg, text]
           elsif text = @ss.scan(/\|/) then
-            [:t_or, text]
+            [text, text]
           elsif text = @ss.scan(/\n/) then
             @state = :prev_or_new?
             next_token

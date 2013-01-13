@@ -583,6 +583,11 @@ agnostic_19:
     -a
     -b
 
+  pebble:
+    - ":optional"
+    - [":short_opt", "-a"]
+    - [":short_opt", "b"]
+
   runs:
   - prog: -a -b
     expect:
@@ -859,6 +864,7 @@ agnostic_20:
     -a
     -b
 
+  tokens: ["prog", "(", "-a", "|", "-b", ")"]
   runs:
   - prog: -a -b
     expect: user-error

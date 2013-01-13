@@ -3,6 +3,12 @@ require "test_helper"
 require "docopt"
 
 class TestOptionsBlock < MiniTest::Unit::TestCase
+
+  def test_agnostic_10
+    expected = {"-p"=>{:arg=>"PATH", :default=>"./"}}
+    assert_equal expected, Docopt::parse_options(TEST_CASES["agnostic_10"]["usage"])
+  end
+
   def test_raw_any_options
     d = Docopt.parse_options(load_raw "any_options_example")
     expected = {"-h" => {:alt => "--help"},
