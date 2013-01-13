@@ -48,7 +48,7 @@ rule
     | t_short_opt
         { result = @machine.new_node(:short_option, val[0]) }
     | t_short_opt_arged t_var
-        { result = @machine.new_node(:short_option, [val[0], val[1]]) }
+        { result = @machine.new_node(:short_option, val[0]) }
     | t_long_opt
         { result = @machine.new_node(:long_option, val[0]) }
     | t_long_opt_arged '=' t_var
@@ -67,10 +67,12 @@ rule
     : '(' mutex ')'
         { result = val[1] }
     | '[' mutex ']'
-        { result = @machine.new_node(:optional, val[1])
-          if val[1].kind_of? Docopt::Machine::Nodes::ShortOption then
-            result = @machine.new_node(:options_shorthand, [val[1]])
-          elsif val[1].kind_of? Docopt::Machine::Nodes::Cons \
+        { #HACK
+          result = @machine.new_node(:optional, val[1])
+          # if val[1].kind_of? Docopt::Machine::Nodes::ShortOption then
+          #   result = @machine.new_node(:options_shorthand, [val[1]])
+          # els
+          if val[1].kind_of? Docopt::Machine::Nodes::Cons \
             and val[1].cons_of? Docopt::Machine::Nodes::ShortOption
             then
             result = @machine.new_node(:options_shorthand, val[1].cons)
