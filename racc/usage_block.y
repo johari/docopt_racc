@@ -14,7 +14,7 @@ rule
     : synopses
         { result = val[0] }
     | synopses synopsis
-        { result = @machine.new_node(:either, [val[0], val[2]]) }
+        { result = @machine.new_node(:either, [val[0], val[1]]) }
 
   synopses
     : t_synopses_begin t_prog_name mutex

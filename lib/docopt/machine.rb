@@ -14,7 +14,6 @@ module Docopt
       @data = {}
       @options = options
       @options.each_pair do |opt, val|
-        puts [opt,val].to_s
         next if val.include? :alt
         @data[opt] = (val.include? :arg) ? nil : false
         @data[opt] = val[:default] if val.include? :default
@@ -47,6 +46,10 @@ module Docopt
 
     def short_options
       @options.keys.select { |x| x =~ /^-[a-z]$/ }.compact
+    end
+
+    def long_options
+      @options.keys.select { |x| x =~ /^--/ }.compact
     end
 
     def new_node(type, value)
@@ -250,33 +253,51 @@ module Docopt
       class LongOption < Option
         def initialize(value, machine)
           super
-          if value.kind_of? String then
-            @machine.type[value] ||= :singular_long_option
-            @machine.data[value] ||= false
-          elsif value.kind_of? Array then
-            @machine.type[value] ||= :singular_arged_long_option
-            @machine.data[value] ||= nil
+          @opt_name = value
+          @machine.type[value] ||= :singular_long_option
+          if @machine.is_arged? @opt_name then
+            @machine.data[value] = nil if not @machine.data.include? value
+          else
+            @machine.data[value] = false if not @machine.data.include? value
           end
         end
 
         def move(alt, cons, args, data)
           new_data = data.clone
-          found = false
-          consed = @value
-          new_args = args.collect do |arg|
-            if not found and arg == @value then
-              found = true
-              new_data[consed] = true
-              nil
-            else
-              arg
+          if @machine.is_arged? @opt_name then
+            args.each_with_index do |arg, index|
+              if arg == @opt_name then
+                if index == args.length-1 then
+                  return alt.alt("%s needs argument" % @opt_name)
+                end
+                val = args[index+1]
+                if val[0] == "-" then
+                  return alt.alt("%s needs argument" % @opt_name)
+                end
+                new_args = args[0...index]
+                cdr = args[index+2..-1]
+                new_args += cdr if cdr
+                new_data[@opt_name] = val
+              elsif arg =~ /#{@opt_name}=(.*)/ then
+                new_args = args[0...index]
+                cdr = args[index+1..-1]
+                new_args += cdr if cdr
+                new_data[@opt_name] = $1
+              end
+              return @pass.move(alt, cons + [@opt_name, val], new_args, new_data)
             end
-          end.compact
-          if found then
-            @pass.move(alt, cons + [consed], new_args, new_data)
           else
-            alt.alt("expected %s" % @value)
+            args.each_with_index do |arg, index|
+              if arg == @opt_name then
+                new_args = args[0...index]
+                cdr = args[(index+1)..-1]
+                new_args += cdr if cdr
+                new_data[@opt_name] = true
+                return @pass.move(alt, cons+[@opt_name], new_args, new_data)
+              end
+            end
           end
+          alt.alt("expected %s" % @value)
         end
 
       end
