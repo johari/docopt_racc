@@ -18,9 +18,9 @@ rule
 
   synopses
     : t_synopses_begin t_prog_name mutex
-        { result = val[2] }
+        { @seen = {}; result = val[2] }
     | t_synopses_begin t_prog_name
-        { result = @machine.new_node(:null, nil) }
+        { @seen = {}; result = @machine.new_node(:null, nil) }
 
   mutex
     : args
@@ -46,7 +46,14 @@ rule
     | arg_group
         { result = val[0] }
     | t_short_opt
-        { result = @machine.new_node(:short_option, val[0]) }
+        {
+          result = @machine.new_node(:short_option, val[0])
+          if @seen[val[0]] then
+            result.pluralize
+          else
+            @seen[val[0]] = true
+          end
+        }
     | t_short_opt_arged t_var
         { result = @machine.new_node(:short_option, val[0]) }
     | t_long_opt
@@ -95,6 +102,7 @@ module UsageBlock
   end
 
   def parse
+    @seen = {}
     @str += "\n"
     options = Docopt::parse_options(@str)
     @machine = Docopt::Machine.new(options)
