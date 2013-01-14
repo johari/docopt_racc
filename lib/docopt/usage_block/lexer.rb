@@ -2,13 +2,8 @@ module Docopt
   module UsageBlock
     class Lexer
       require 'strscan'
-
-      SHORT_OPT = /-[a-z]/i
-      LONG_OPT = /--[a-z][a-z-]+/i
-      DELIM = /(, *)| +/
-      VAR = /<[a-z]+>|[A-Z]+/
-      ARG = /[a-z]+/
-      LDOTS = /\.\.\./
+      require File.expand_path('../../constants.rb', __FILE__)
+      include Docopt::Constants
 
       def initialize str, machine
         @ss = StringScanner.new(str)
