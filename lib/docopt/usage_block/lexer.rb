@@ -88,7 +88,11 @@ module Docopt
           elsif text = @ss.scan(LDOTS) then
             [:t_ldots, text]
           elsif text = @ss.scan(LONG_OPT) then
-            [:t_long_opt, text]
+            if @machine.is_arged? text then
+              [:t_long_opt_arged, text]
+            else
+              [:t_long_opt, text]
+            end
           elsif text = @ss.scan(/\=/) then
             [text, text]
           elsif text = @ss.scan(ARG) then
