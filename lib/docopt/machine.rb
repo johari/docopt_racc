@@ -13,6 +13,12 @@ module Docopt
       @type = {}
       @data = {}
       @options = options
+      @options.each_pair do |opt, val|
+        puts [opt,val].to_s
+        next if val.include? :alt
+        @data[opt] = (val.include? :arg) ? nil : false
+        @data[opt] = val[:default] if val.include? :default
+      end
     end
 
     def is_arged? o
