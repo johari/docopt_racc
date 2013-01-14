@@ -46,10 +46,13 @@ module Docopt
             next_token
           elsif text = @ss.scan(/\=/) then
             [:t_eq, text]
-          elsif text = @ss.scan(ARG) then
-            [:t_arg, text]
+          elsif text = @ss.scan(VAR) then
+            [:t_var, text]
           elsif text = @ss.scan(DELIM) then
             [:t_delim, text]
+          else
+            @state = :help_message
+            next_token
           end
         when :prev_or_new?
           @ss.skip(/[[:blank:]]+/)

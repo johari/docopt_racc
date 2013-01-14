@@ -50,19 +50,19 @@ rule
         { result = [val[0], val[2]] }
 
   short_opt_with_arg
-    : short_opt t_delim t_arg
+    : short_opt t_delim t_var
         { short = val[0].dup
           short.update({:arg => val[2]})
           result = short
         }
 
   long_opt_with_arg
-    : long_opt t_delim t_arg
+    : long_opt t_delim t_var
       { long = val[0].dup
         long.update({:arg => val[2]})
         result = long
       }
-    | long_opt t_eq t_arg
+    | long_opt t_eq t_var
       { long = val[0].dup
         long.update({:eq => true, :arg => val[2]})
         result = long
