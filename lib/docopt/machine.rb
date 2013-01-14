@@ -347,7 +347,11 @@ module Docopt
                   end
                 else
                   if cur_opt == @opt_name then
-                    new_data[name_in_data] = true
+                    if @machine.type[@opt_name] == :singular_short_option then
+                      new_data[name_in_data] = true
+                    else
+                      new_data[name_in_data] += 1
+                    end
                     new_arg = arg[0...index] + arg[(index+1)..-1]
                     if new_arg == "-" then
                       new_args = args[0...args_index] + args[(args_index+1)..-1]
