@@ -79,10 +79,15 @@ rule
     | t_long_opt_arged t_var
         { result = @machine.new_node(:long_option, val[0]) }
     | t_options_shorthand
-        { result = @machine.new_node(:options_shorthand, \
+        { shorts = \
             @machine.short_options.collect do |x|
               @machine.new_node(:short_option, x)
-            end)
+            end
+          longs = \
+            @machine.long_options.collect do |x|
+              @machine.new_node(:long_option, x)
+            end
+          result = @machine.new_node(:either_optional, shorts+longs)
         }
 
 
