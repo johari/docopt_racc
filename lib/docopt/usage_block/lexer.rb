@@ -109,8 +109,12 @@ module Docopt
           @ss.skip(/[[:blank:]]+/)
           if @prog_name.nil? then
             @prog_name = @ss.scan(/[\w\._-]+/)
-            @ss.unscan
-            return next_token
+            if @prog_name then
+              @ss.unscan
+              return next_token
+            else
+              return nil
+            end
           end
           if (text = @ss.scan(/#{Regexp.quote @prog_name}/)) then
             @state = :new_car
