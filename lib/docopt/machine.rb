@@ -380,11 +380,11 @@ module Docopt
         end
       end
 
-      class OptionsShorthand < Node
+      class EitherOptional < Node
         def initialize(value, machine)
           super
-          vals = value.map do |short_opt|
-            @machine.new_node(:optional, short_opt)
+          vals = value.map do |x|
+            @machine.new_node(:optional, x)
           end
 
           case vals.length

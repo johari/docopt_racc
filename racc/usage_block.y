@@ -70,12 +70,11 @@ rule
         { #HACK
           result = @machine.new_node(:optional, val[1])
           # if val[1].kind_of? Docopt::Machine::Nodes::ShortOption then
-          #   result = @machine.new_node(:options_shorthand, [val[1]])
+          #   result = @machine.new_node(:either_optional, [val[1]])
           # els
           if val[1].kind_of? Docopt::Machine::Nodes::Cons \
-            and val[1].cons_of? Docopt::Machine::Nodes::ShortOption
             then
-            result = @machine.new_node(:options_shorthand, val[1].cons)
+            result = @machine.new_node(:either_optional, val[1].cons)
           end
         }
 
