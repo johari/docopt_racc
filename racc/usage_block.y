@@ -40,9 +40,21 @@ rule
 
   arg_repeatable
     : t_arg
-        { result = @machine.new_node(:arg, val[0]) }
+        { result = @machine.new_node(:arg, val[0])
+          if @seen[val[0]] then
+            result.pluralize
+          else
+            @seen[val[0]] = true
+          end
+        }
     | t_var
-        { result = @machine.new_node(:var, val[0]) }
+        { result = @machine.new_node(:var, val[0])
+          if @seen[val[0]] then
+            result.pluralize
+          else
+            @seen[val[0]] = true
+          end
+        }
     | arg_group
         { result = val[0] }
     | t_short_opt
