@@ -71,9 +71,13 @@ rule
     | t_long_opt
         { result = @machine.new_node(:long_option, val[0]) }
     | t_long_opt_arged '=' t_var
-        { result = @machine.new_node(:long_option, [val[0], "=", val[2]]) }
+        { result = @machine.new_node(:long_option, val[0]) }
+    | t_long_opt '=' t_var
+        { @machine.options[val[0]] ||= {}
+          @machine.options[val[0]].update({:arg => val[2]})
+          result = @machine.new_node(:long_option, val[0]) }
     | t_long_opt_arged t_var
-        { result = @machine.new_node(:long_option, [val[0], val[1]]) }
+        { result = @machine.new_node(:long_option, val[0]) }
     | t_options_shorthand
         { result = @machine.new_node(:options_shorthand, \
             @machine.short_options.collect do |x|
