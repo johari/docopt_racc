@@ -277,12 +277,20 @@ module Docopt
                 new_args = args[0...index]
                 cdr = args[index+2..-1]
                 new_args += cdr if cdr
-                new_data[@opt_name] = val
+                if @machine.type[@opt_name] == :singular_long_option then
+                  new_data[@opt_name] = val
+                else
+                  new_data[@opt_name] += [val]
+                end
               elsif arg =~ /#{@opt_name}=(.*)/ then
                 new_args = args[0...index]
                 cdr = args[index+1..-1]
                 new_args += cdr if cdr
-                new_data[@opt_name] = $1
+                if @machine.type[@opt_name] == :singular_long_option then
+                  new_data[@opt_name] = $1
+                else
+                  new_data[@opt_name] += [$1]
+                end
               end
               return @pass.move(alt, cons + [@opt_name, val], new_args, new_data)
             end
@@ -292,7 +300,11 @@ module Docopt
                 new_args = args[0...index]
                 cdr = args[(index+1)..-1]
                 new_args += cdr if cdr
-                new_data[@opt_name] = true
+                if @machine.type[@opt_name] == :singular_long_option then
+                  new_data[@opt_name] = true
+                else
+                  new_data[@opt_name] += 1
+                end
                 return @pass.move(alt, cons+[@opt_name], new_args, new_data)
               end
             end
