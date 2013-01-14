@@ -48,10 +48,18 @@ module Docopt
             [:t_prog_name, text]
           else
           end
+        when :emit_unstandard_arg
+          @state = :new_cdr
+          if text = @ss.scan(/[a-z]+/)
+            [:t_var, text]
+          else
+            next_token
+          end
         when :short_stack
           if text = @ss.scan(/[a-z]/) then
             opt = "-#{text}"
             if @machine.is_arged? opt then
+              @state = :emit_unstandard_arg
               [:t_short_opt_arged, opt]
             else
               [:t_short_opt, opt]
