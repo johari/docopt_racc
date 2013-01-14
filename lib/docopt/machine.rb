@@ -307,10 +307,13 @@ module Docopt
           super
           @opt_name = @value
           @machine.type[value] ||= :singular_short_option
-          if @machine.is_arged? @opt_name then
-            @machine.data[value] ||= nil
-          else
-            @machine.data[value] ||= false
+          if not (@machine.options[@opt_name] \
+                  and @machine.options[@opt_name].include? :alt) then
+            if @machine.is_arged? @opt_name then
+              @machine.data[value] = nil if not @machine.data.include? value
+            else
+              @machine.data[value] = false if not @machine.data.include? value
+            end
           end
         end
 
