@@ -85,11 +85,24 @@ module Docopt
         def to_s
           @value.to_s
         end
+
+        def eql?(other)
+          self.to_s == other.to_s
+        end
+
+        def hash
+          self.to_s.hash
+        end
+
       end
 
       class Null < Node
         def move(alt, cons, args, data)
           @pass.move(alt, cons, args, data)
+        end
+
+        def leaf_count
+          {}
         end
       end
 
@@ -122,6 +135,14 @@ module Docopt
         def pluralize
           @value.each { |v| v.pluralize }
         end
+
+        def leaf_count
+          @value.reduce({}) do |memo, val|
+            memo.merge val.leaf_count do |key, old_val, new_val|
+              [old_val, new_val].max
+            end
+          end
+        end
       end
 
       class Group < Node
@@ -140,6 +161,10 @@ module Docopt
 
         def pluralize
           @value.pluralize
+        end
+
+        def leaf_count
+          @value.leaf_count
         end
       end
 
@@ -176,8 +201,15 @@ module Docopt
           @value.move(alt, cons, args, data)
         end
 
+        def leaf_count
+          lc = @value.leaf_count
+          lc.merge lc do |k, ov, nv|
+            2
+          end
+        end
+
         def pluralize
-          # duh!
+          @value.pluralize
         end
 
         def to_s
@@ -200,6 +232,10 @@ module Docopt
 
         def to_s
           '[":optional", %s]' % @value
+        end
+
+        def leaf_count
+          @value.leaf_count
         end
 
         def pluralize
@@ -234,6 +270,17 @@ module Docopt
           end
         end
 
+        def leaf_count
+          r = {}
+          @value.each do |c|
+            r.merge! c.leaf_count do |k, o, n|
+              # puts r.to_s
+              o+n
+            end
+          end
+          r
+        end
+
         def pluralize
           @value.each { |v| v.pluralize }
         end
@@ -258,6 +305,10 @@ module Docopt
           else
             @machine.data[@value] = 0
           end
+        end
+
+        def leaf_count
+          {self => 1}
         end
 
         def to_s
@@ -470,6 +521,13 @@ module Docopt
           @new_node.to_s
         end
 
+        def pluralize
+          @new_node.pluralize
+        end
+
+        def leaf_count
+          @new_node.leaf_count
+        end
       end
 
       class Var < Node
@@ -503,6 +561,10 @@ module Docopt
         def pluralize
           @machine.type[@value] = :list
           @machine.data[@value] = []
+        end
+
+        def leaf_count
+          {self => 1}
         end
 
         def to_s
@@ -541,6 +603,10 @@ module Docopt
         def pluralize
           @machine.type[@value] = :plural
           @machine.data[@value] = 0
+        end
+
+        def leaf_count
+          {self => 1}
         end
 
         def to_s
