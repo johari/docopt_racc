@@ -83,6 +83,7 @@ end
 
 require File.expand_path("../../machine.rb", __FILE__)
 require File.expand_path("../../tokenizer.rb", __FILE__)
+require File.expand_path("../../options_block.rb", __FILE__)
 
 module Docopt
 ---- inner
@@ -93,7 +94,8 @@ module Docopt
   def parse(str)
     str += "\n"
     tokenizer = Tokenizer.new(str)
-    @machine = Docopt::Machine.new(tokenizer.optype)
+    options = Docopt::parse_options(str)
+    @machine = Docopt::Machine.new(options)
     @q = tokenizer.tokenize()
     @consumed = []
     # $stderr.puts @q.to_s
