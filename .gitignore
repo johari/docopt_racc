@@ -1,3 +1,4 @@
 lib/docopt/options_block/parser.rb
 lib/docopt/usage_block/parser.rb
+coverage/
 Gemfile.lock
