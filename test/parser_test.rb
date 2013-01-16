@@ -2,7 +2,6 @@ require "minitest/autorun"
 require "yaml"
 require "shellwords"
 require File.expand_path("../../lib/docopt.rb", __FILE__)
-require File.expand_path("../../lib/tokenizer.rb", __FILE__)
 
 
 class TestParser < MiniTest::Unit::TestCase
