@@ -52,6 +52,15 @@ module Docopt
     def long_options
       @all_options.select { |x| x =~ /^--/ }.compact.uniq
     end
+
+    def uniq_prefix? what, of_what
+      # puts [what, of_what].to_s
+      r = long_options.select do |long|
+        return true if what == of_what
+        long[0...(what.length)] == what
+      end
+      # raise [r, r[0], of_what].to_s
+      r.length == 1 and r[0] == of_what
     end
 
     def new_node(type, value)
@@ -273,7 +282,7 @@ module Docopt
           new_data = data.clone
           if @machine.is_arged? @opt_name then
             args.each_with_index do |arg, index|
-              if arg == @opt_name then
+              if @machine.uniq_prefix? arg, @opt_name then
                 if index == args.length-1 then
                   return alt.alt("%s needs argument" % @opt_name)
                 end
@@ -289,21 +298,24 @@ module Docopt
                 else
                   new_data[@opt_name] += [val]
                 end
-              elsif arg =~ /#{@opt_name}=(.*)/ then
+              elsif arg =~ /(.*)=(.*)/ \
+                  and @machine.uniq_prefix? $1, @opt_name then
                 new_args = args[0...index]
                 cdr = args[index+1..-1]
                 new_args += cdr if cdr
                 if @machine.type[@opt_name] == :singular_long_option then
-                  new_data[@opt_name] = $1
+                  new_data[@opt_name] = $2
                 else
-                  new_data[@opt_name] += [$1]
+                  new_data[@opt_name] += [$2]
                 end
+              else
+                next
               end
               return @pass.move(alt, cons + [@opt_name, val], new_args, new_data)
             end
           else
             args.each_with_index do |arg, index|
-              if arg == @opt_name then
+              if @machine.uniq_prefix? arg, @opt_name then
                 new_args = args[0...index]
                 cdr = args[(index+1)..-1]
                 new_args += cdr if cdr
@@ -316,7 +328,7 @@ module Docopt
               end
             end
           end
-          alt.alt("expected %s" % @value)
+          return alt.alt("expected %s" % @value)
         end
 
       end
