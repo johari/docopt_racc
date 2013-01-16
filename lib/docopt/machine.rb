@@ -7,7 +7,7 @@ end
 
 module Docopt
   class Machine
-    attr_accessor :type, :data, :options
+    attr_accessor :type, :data, :options, :all_options
 
     def initialize(options={})
       @type = {}
@@ -18,6 +18,7 @@ module Docopt
         @data[opt] = (val.include? :arg) ? nil : false
         @data[opt] = val[:default] if val.include? :default
       end
+      @all_options = @options.keys
     end
 
     def is_arged? o
@@ -45,11 +46,12 @@ module Docopt
     end
 
     def short_options
-      @options.keys.select { |x| x =~ /^-[a-z]$/ }.compact
+      @all_options.select { |x| x =~ /^-[a-z]$/ }.compact.uniq
     end
 
     def long_options
-      @options.keys.select { |x| x =~ /^--/ }.compact
+      @all_options.select { |x| x =~ /^--/ }.compact.uniq
+    end
     end
 
     def new_node(type, value)
@@ -234,6 +236,11 @@ module Docopt
       end
 
       class Option < Node
+        def initialize value, machine
+          super
+          @machine.all_options.push value
+        end
+
         def pluralize
           t = @machine.type[@value].to_s
           @machine.type[@value] = t.sub("singular", "plural").to_sym
