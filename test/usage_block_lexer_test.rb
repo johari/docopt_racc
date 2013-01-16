@@ -1,4 +1,3 @@
-require "minitest/autorun"
 require "test_helper"
 require "docopt/usage_block/lexer"
 require "docopt/machine"

@@ -2,6 +2,7 @@ $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
 
 require "yaml"
+require "minitest/autorun"
 
 def load_raw name
   path = File::expand_path("../raw/#{name}", __FILE__)

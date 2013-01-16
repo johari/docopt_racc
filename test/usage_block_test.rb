@@ -1,7 +1,5 @@
-require "minitest/autorun"
-require "yaml"
-require "shellwords"
 require "test_helper"
+require "shellwords"
 require "docopt"
 
 
