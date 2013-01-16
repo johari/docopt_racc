@@ -315,6 +315,32 @@ module Docopt
           foo = {"ShortOption" => :short_opt, "LongOption" => :long_opt}
           '[":%s", %s]' % [foo[self.class.name.split("::")[-1]].to_s, @value]
         end
+
+        def name_in_data
+          opt = @machine.options[@opt_name]
+          if opt and opt.include? :alt then
+            opt[:alt]
+          else
+            @opt_name
+          end
+        end
+
+        def populate what, with_what
+          if @machine.is_arged? @opt_name then
+            if @machine.type[@opt_name].to_s =~ /singular/ then
+              what[name_in_data] = with_what
+            else
+              what[name_in_data] += [with_what]
+            end
+          else
+            if @machine.type[@opt_name].to_s =~ /singular/ then
+              what[name_in_data] = true
+            else
+              what[name_in_data] += 1
+            end
+          end
+          what
+        end
       end
 
       class LongOption < Option
@@ -344,21 +370,13 @@ module Docopt
                 new_args = args[0...index]
                 cdr = args[index+2..-1]
                 new_args += cdr if cdr
-                if @machine.type[@opt_name] == :singular_long_option then
-                  new_data[@opt_name] = val
-                else
-                  new_data[@opt_name] += [val]
-                end
+                new_data = populate new_data, val
               elsif arg =~ /(.*)=(.*)/ \
                   and @machine.uniq_prefix? $1, @opt_name then
                 new_args = args[0...index]
                 cdr = args[index+1..-1]
                 new_args += cdr if cdr
-                if @machine.type[@opt_name] == :singular_long_option then
-                  new_data[@opt_name] = $2
-                else
-                  new_data[@opt_name] += [$2]
-                end
+                new_data = populate new_data, $2
               else
                 next
               end
@@ -370,11 +388,7 @@ module Docopt
                 new_args = args[0...index]
                 cdr = args[(index+1)..-1]
                 new_args += cdr if cdr
-                if @machine.type[@opt_name] == :singular_long_option then
-                  new_data[@opt_name] = true
-                else
-                  new_data[@opt_name] += 1
-                end
+                new_data = populate new_data, true
                 return @pass.move(alt, cons+[@opt_name], new_args, new_data)
               end
             end
@@ -396,15 +410,6 @@ module Docopt
             else
               @machine.data[value] = false if not @machine.data.include? value
             end
-          end
-        end
-
-        def name_in_data
-          opt = @machine.options[@opt_name]
-          if opt and opt.include? :alt then
-            opt[:alt]
-          else
-            @opt_name
           end
         end
 
@@ -432,7 +437,7 @@ module Docopt
                           new_args = [arg[0...index]] if arg[0...index] != "-"
                           aaron = args[(args_index+2)..-1]
                           new_args += aaron if aaron
-                          new_data[name_in_data] = val
+                          new_data = populate new_data, val
                         end
                       else
                         val = arg[(index+1)..-1]
@@ -444,7 +449,7 @@ module Docopt
                         else
                           new_args = args[0...args_index] + [arg[0...index]] + args[(args_index+1)..-1]
                         end
-                        new_data[name_in_data] = val
+                        new_data = populate new_data, val
                       end
                       return @pass.move(alt, cons+[@opt_name, val], new_args, new_data)
                     end
@@ -453,11 +458,7 @@ module Docopt
                   end
                 else
                   if cur_opt == @opt_name then
-                    if @machine.type[@opt_name] == :singular_short_option then
-                      new_data[name_in_data] = true
-                    else
-                      new_data[name_in_data] += 1
-                    end
+                    new_data = populate new_data, true
                     new_arg = arg[0...index] + arg[(index+1)..-1]
                     if new_arg == "-" then
                       new_args = args[0...args_index] + args[(args_index+1)..-1]

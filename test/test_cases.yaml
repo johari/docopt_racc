@@ -1,3 +1,24 @@
+short_opt_in_repeatable_group:
+  usage: |+
+    Usage: prog (-x <x> -y <y>)...
+
+    -x <x>
+    -y <y>
+
+  runs:
+    - prog: -x 10 -y 20 -x 30 -y 40
+      expect:  &e {"-x": ["10", "30"], "-y": ["20", "40"]}
+    - prog: -y 20 -y40 -x 10 -x 30
+      expect: *e
+pluralized_short_opt:
+  usage: |+
+    Usage: prog (-x <x>)...
+
+    Options:
+      -x <x>
+  runs:
+    - prog: -x 10 -x 20
+      expect: {"-x": ["10", "20"]}
 short_option_with_arg:
   usage: |+
     Usage: prog -f ARG
