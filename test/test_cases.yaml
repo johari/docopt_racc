@@ -703,6 +703,9 @@ agnostic_41:
     expect:
       --aa: true
       --aabb: false
+  - prog: --a
+    expect: "user-error"
+    because: "not a unique prefix"
 agnostic_42:
   usage: |+
     usage: prog [--file=<f>]
@@ -725,7 +728,10 @@ agnostic_44:
 
     -a, --address <host:port>  TCP address [default: localhost:6283].
 
-  runs: []
+  runs:
+  - prog: ""
+    expect:
+      --address: localhost:6283
 
 agnostic_35:
   usage: |+
@@ -758,8 +764,10 @@ agnostic_52:
   usage: |+
     usage: prog go...
 
-  runs: []
-
+  runs:
+  - prog: go go go go go
+    expect:
+      go: 5
 agnostic_34:
   usage: |+
     usage: prog (NAME | --foo NAME)
@@ -1069,4 +1077,6 @@ agnostic_49:
   usage: |+
     usage: prog [--ver --ver]
 
-  runs: []
+  runs:
+  - prog: --ver --ver
+    expect: {"--ver": 2}
