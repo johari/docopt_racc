@@ -7,7 +7,7 @@ end
 
 module Docopt
   class Machine
-    attr_accessor :type, :data, :options, :all_options
+    attr_accessor :type, :data, :options, :all_options, :reasons
 
     def initialize(options={})
       @type = {}
@@ -18,6 +18,7 @@ module Docopt
         @data[opt] = (val.include? :arg) ? nil : false
         @data[opt] = val[:default] if val.include? :default
       end
+      @reasons = []
       @all_options = @options.keys
     end
 
@@ -80,6 +81,7 @@ module Docopt
         end
 
         def alt(reason)
+          @machine.reasons.push reason
         end
 
         def to_s
@@ -115,6 +117,7 @@ module Docopt
         end
 
         def alt(reason)
+          super
           alt, cons, args, data = @history
           @value[1].pass = @pass
           @value[1].move(alt, cons, args, data)
@@ -182,7 +185,7 @@ module Docopt
           @greed.push [alt, cons, args, data]
           if @read_already then
             if @greed.length > 1 and @greed[-1] == @greed[-2] then
-              self.alt "matched kleene star of epsilon"
+              self.alt [:error, "matched kleene star of epsilon"]
             else
               @value.move(self, cons, args, data)
             end
@@ -193,6 +196,7 @@ module Docopt
         end
 
         def alt(reason)
+          super
           alt, cons, args, data = @greed.pop
           @value.pass = @pass
           if @greed.length > 0 then
@@ -226,6 +230,7 @@ module Docopt
         end
 
         def alt(reason)
+          super
           alt, cons, args, data = @history
           @pass.move(alt, cons, args, data)
         end
@@ -361,11 +366,11 @@ module Docopt
             args.each_with_index do |arg, index|
               if @machine.uniq_prefix? arg, @opt_name then
                 if index == args.length-1 then
-                  return alt.alt("%s needs argument" % @opt_name)
+                  return alt.alt([:needs_argument, @opt_name])
                 end
                 val = args[index+1]
                 if val[0] == "-" then
-                  return alt.alt("%s needs argument" % @opt_name)
+                  return alt.alt([:needs_argument, @opt_name])
                 end
                 new_args = args[0...index]
                 cdr = args[index+2..-1]
@@ -393,7 +398,7 @@ module Docopt
               end
             end
           end
-          return alt.alt("expected %s" % @value)
+          return alt.alt([:expected, @value])
         end
 
       end
@@ -427,11 +432,11 @@ module Docopt
                     if @machine.is_arged? cur_opt then
                       if index == arg.length-1 then
                         if args_index == args.length-1 then
-                          return alt.alt("%s need argument" % @opt_name)
+                          return alt.alt([:needs_argument, @opt_name])
                         else
                           val = args[args_index+1]
                           if val[0] == "-" then
-                            return alt.alt("%s need argument" % @opt_name)
+                            return alt.alt([:needs_argument, @opt_name])
                           end
                           new_args = args[0...args_index]
                           new_args = [arg[0...index]] if arg[0...index] != "-"
@@ -442,7 +447,7 @@ module Docopt
                       else
                         val = arg[(index+1)..-1]
                         if val[0]== "-" then
-                          return alt.alt("%s needs argument" % @opt_name)
+                          return alt.alt([:needs_argument, @opt_name])
                         end
                         if arg[0..(index-1)] == "-" then
                           new_args = args[0...args_index] + args[(args_index+1)..-1]
@@ -475,7 +480,7 @@ module Docopt
               next
             end
           end
-          alt.alt("expected %s" % @opt_name)
+          alt.alt([:expected, @opt_name])
         end
 
         def to_s
@@ -555,7 +560,7 @@ module Docopt
             end
             @pass.move(alt, cons + [args[start]], args[0...start] + args[(start+1)..-1], new_data)
           else
-            alt.alt "expected variable %s %s" % [@value, [cons, args].to_s]
+            alt.alt [:expected, @value]
           end
         end
 
@@ -597,7 +602,7 @@ module Docopt
             end
             @pass.move(alt, cons + [args[start]], args[0...start] + args[(start+1)..-1], new_data)
           else
-            alt.alt "expected %s" % @value
+            alt.alt [:expected, @value]
           end
         end
 

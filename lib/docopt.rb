@@ -14,16 +14,25 @@ module Docopt
   end
 
   class God
+    def initialize pebble, usage
+      @pebble = pebble
+      @usage = usage
+    end
+
     def move(alt, cons, args, data)
       if args.length == 0
         data
       else
-        alt.alt "expecting more arguments %s" % args.to_s
+        alt.alt "expecting more arguments"
       end
     end
 
     def alt(message)
-      raise ARGVError, message
+      @pebble.machine.reasons.each do |(t, v)|
+        raise ARGVError, "#{v} needs argument" if t == :needs_argument
+      end
+
+      raise ARGVError, @usage
     end
   end
 
@@ -36,7 +45,7 @@ module Docopt
 
     def docopt(usage, args=ARGV)
       pebble = parse usage
-      god = God.new
+      god = God.new pebble, usage
       pebble.pass = god
 
       # $stderr.puts "pebble is %s (%s)" % [pebble.to_s, pebble.class]
