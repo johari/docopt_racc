@@ -8,8 +8,8 @@ doc = STDIN.read
 begin
   res = Docopt::docopt(doc).to_json
   puts res
-rescue Docopt::ParseError => e
-  $stderr.puts $!
+rescue Docopt::ARGVError => e
+  # $stderr.puts $!
   puts '"user-error"'
 rescue => e
   raise e
