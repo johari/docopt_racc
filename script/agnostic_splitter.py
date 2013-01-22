@@ -10,6 +10,8 @@ for x in tree.body:
   if isinstance(x, ast.Expr) and isinstance(x.value, ast.Str):
     docstring = ast.literal_eval(x.value)
 
+docstring = re.sub('#.*$', '', docstring, flags=re.M)
+
 index = 0
 
 cases = {}
