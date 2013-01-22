@@ -16,8 +16,12 @@ TestParser.instance_eval do
           args = Shellwords.shellwords(run["prog"])
           case run["expect"]
           when "user-error"
-            assert_raises Docopt::ARGVError do
+            begin
               Docopt::docopt(test_case["usage"], args)
+            rescue Docopt::ARGVError => e
+              assert_equal run["because"], e.message if run.include? "because"
+            else
+              raise "user-error expected"
             end
           else
             assert_equal run["expect"], Docopt::docopt(test_case["usage"], args)
