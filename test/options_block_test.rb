@@ -8,6 +8,16 @@ class TestOptionsBlock < MiniTest::Unit::TestCase
     assert_equal expected, Docopt::parse_options(TEST_CASES["agnostic_10"]["usage"])
   end
 
+  def test_agnostic_44
+    expected = {"-a"=>{:alt=>"--address"}, "--address"=>{:arg=>"<host:port>", :default=>"localhost:6283"}}
+    assert_equal expected, Docopt::parse_options(TEST_CASES["agnostic_44"]["usage"])
+  end
+
+  def test_options_shorthand
+    d = Docopt.parse_options(TEST_CASES["options_shorthand"]["usage"])
+    assert_equal ({}), d
+  end
+
   def test_raw_any_options
     d = Docopt.parse_options(load_raw "any_options_example")
     expected = {"-h" => {:alt => "--help"},

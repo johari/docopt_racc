@@ -17,6 +17,17 @@ module Docopt
         assert_equal [], tokens_for("")
       end
 
+      def test_agnostic_44
+        expected = [[:t_optline_begin, nil],
+                      [:t_short_opt, "-a"],
+                      [:t_delim, ", "],
+                      [:t_long_opt, "--address"],
+                      [:t_delim, " "],
+                      [:t_var, "<host:port>"],
+                      [:t_default, "localhost:6283"]]
+        assert_equal expected, tokens_for(TEST_CASES["agnostic_44"]["usage"])
+      end
+
       def test_raw_without_options_directive
         expected = [[:t_optline_begin, nil],
                       [:t_short_opt, "-a"],
