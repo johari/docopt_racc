@@ -29,7 +29,7 @@ module Docopt
 
     def alt(message)
       @pebble.machine.reasons.each do |(t, v)|
-        raise ARGVError, "#{v} needs argument" if t == :needs_argument
+        raise ARGVError, "#{v} requires argument" if t == :needs_argument
       end
 
       raise ARGVError, @usage
