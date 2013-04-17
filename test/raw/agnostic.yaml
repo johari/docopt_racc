@@ -1,0 +1,1072 @@
+---
+fjjja:
+  usage: 'usage: prog --hello'
+  runs:
+  - prog: --hello
+    expect:
+      --hello: true
+ffann:
+  usage: 'usage: prog [NAME]...'
+  runs:
+  - prog: 10 20
+    expect:
+      NAME:
+      - '10'
+      - '20'
+  - prog: '10'
+    expect:
+      NAME:
+      - '10'
+  - prog: ''
+    expect:
+      NAME: []
+jjjaa:
+  usage: 'usage: prog [--input=<file name>]...'
+  runs:
+  - prog: --input a.txt --input=b.txt
+    expect:
+      --input:
+      - a.txt
+      - b.txt
+fffjj:
+  usage: |+
+    Usage: prog [options]
+
+    Options: -p PATH
+
+  runs:
+  - prog: -p home/
+    expect:
+      -p: home/
+  - prog: -phome/
+    expect:
+      -p: home/
+  - prog: -p
+    expect: user-error
+jjjjj:
+  usage: |+
+    usage: prog [-o <o>]...
+
+    options: -o <o>  [default: x y]
+
+  runs:
+  - prog: -o this
+    expect:
+      -o:
+      - this
+  - prog: ''
+    expect:
+      -o:
+      - x
+      - y
+fffjl:
+  usage: |+
+    Usage: prog [options]
+
+    Options: -p PATH, --path=<path>  Path to files.
+
+  runs:
+  - prog: -proot
+    expect:
+      --path: root
+ffaaa:
+  usage: 'usage: prog [<kind> | <name> <type>]'
+  runs:
+  - prog: 10 20 40
+    expect: user-error
+  - prog: 20 40
+    expect:
+      <type>: '40'
+      <kind>: 
+      <name>: '20'
+  - prog: ''
+    expect:
+      <type>: 
+      <kind>: 
+      <name>: 
+fffjn:
+  usage: |+
+    Usage: prog [options]
+
+    Options:    -p --path PATH  Path to files.
+
+  runs:
+  - prog: -p root
+    expect:
+      --path: root
+  - prog: --path root
+    expect:
+      --path: root
+fffja:
+  usage: |+
+    Usage: prog [options]
+
+    Options: --path <path>
+
+  runs:
+  - prog: --path home/
+    expect:
+      --path: home/
+  - prog: --path=home/
+    expect:
+      --path: home/
+  - prog: --pa home/
+    expect:
+      --path: home/
+  - prog: --pa=home/
+    expect:
+      --path: home/
+  - prog: --path
+    expect: user-error
+ffaan:
+  usage: 'usage: prog [<name> <name>]'
+  runs:
+  - prog: 10 20
+    expect:
+      <name>:
+      - '10'
+      - '20'
+  - prog: '10'
+    expect:
+      <name>:
+      - '10'
+  - prog: ''
+    expect:
+      <name>: []
+jjaaa:
+  usage: |-
+    Usage:
+     prog --foo
+     prog --bar
+    NOT PART OF SECTION
+  runs:
+  - prog: --foo
+    expect:
+      --bar: false
+      --foo: true
+fffnn:
+  usage: |+
+    usage: prog [-armmsg]
+
+    options: -a        Add
+             -r        Remote
+             -m <msg>  Message
+
+  runs:
+  - prog: -a -r -m Hello
+    expect:
+      -m: Hello
+      -a: true
+      -r: true
+jjjjn:
+  usage: 'usage: prog [<input file>]'
+  runs:
+  - prog: f.txt
+    expect:
+      <input file>: f.txt
+fffln:
+  usage: |+
+    usage: prog [-a -r -m <msg>]
+
+    options:
+     -a        Add
+     -r        Remote
+     -m <msg>  Message
+
+  runs:
+  - prog: -armyourass
+    expect:
+      -m: yourass
+      -a: true
+      -r: true
+fffll:
+  usage: |+
+    Usage: prog [options]
+
+    Options: --version
+             --verbose
+
+  runs:
+  - prog: --version
+    expect:
+      --verbose: false
+      --version: true
+  - prog: --verbose
+    expect:
+      --verbose: true
+      --version: false
+  - prog: --ver
+    expect: user-error
+  - prog: --verb
+    expect:
+      --verbose: true
+      --version: false
+faaan:
+  usage: 'usage: prog [-opr]'
+  runs:
+  - prog: -op
+    expect:
+      -o: true
+      -p: true
+      -r: false
+ffjjl:
+  usage: |+
+    usage: prog [-a] -b
+
+    options: -a
+     -b
+
+  runs:
+  - prog: -a -b
+    expect:
+      -a: true
+      -b: true
+  - prog: -b -a
+    expect:
+      -a: true
+      -b: true
+  - prog: -a
+    expect: user-error
+  - prog: -b
+    expect:
+      -a: false
+      -b: true
+  - prog: ''
+    expect: user-error
+faaal:
+  usage: 'usage: prog [-o]'
+  runs:
+  - prog: ''
+    expect:
+      -o: false
+  - prog: -o
+    expect:
+      -o: true
+ffffn:
+  usage: |+
+    Usage: prog [options]
+
+    Options: -v, --verbose  Verbose.
+
+  runs:
+  - prog: --verbose
+    expect:
+      --verbose: true
+  - prog: --ver
+    expect:
+      --verbose: true
+  - prog: -v
+    expect:
+      --verbose: true
+ffffj:
+  usage: |+
+    Usage: prog
+
+  runs:
+  - prog: ''
+    expect: {}
+  - prog: --xxx
+    expect: user-error
+ffjjj:
+  usage: |+
+    usage: prog -a -b
+
+    options:
+     -a
+     -b
+
+  runs:
+  - prog: -a -b
+    expect:
+      -a: true
+      -b: true
+  - prog: -b -a
+    expect:
+      -a: true
+      -b: true
+  - prog: -a
+    expect: user-error
+  - prog: ''
+    expect: user-error
+jjjja:
+  usage: |+
+    usage: prog -pPATH
+
+    options: -p PATH
+
+  runs:
+  - prog: -pHOME
+    expect:
+      -p: HOME
+fffff:
+  usage: ''
+  runs: []
+ffjja:
+  usage: |+
+    usage: prog (-a -b)
+
+    options: -a
+             -b
+
+  runs:
+  - prog: -a -b
+    expect:
+      -a: true
+      -b: true
+  - prog: -b -a
+    expect:
+      -a: true
+      -b: true
+  - prog: -a
+    expect: user-error
+  - prog: ''
+    expect: user-error
+faaaa:
+  usage: 'usage: prog [--hello=<world>]'
+  runs:
+  - prog: ''
+    expect:
+      --hello: 
+  - prog: --hello wrld
+    expect:
+      --hello: wrld
+jjaal:
+  usage: |+
+    Usage: prog [options]
+
+    global options: --foo
+    local options: --baz
+                   --bar
+    other options:
+     --egg
+     --spam
+    -not-an-option-
+
+  runs:
+  - prog: --baz --egg
+    expect:
+      --baz: true
+      --bar: false
+      --spam: false
+      --egg: true
+      --foo: false
+fnnnn:
+  usage: |+
+    usage: prog [-o <o>]...
+
+    options: -o <o>  [default: x]
+
+  runs:
+  - prog: -o this -o that
+    expect:
+      -o:
+      - this
+      - that
+  - prog: ''
+    expect:
+      -o:
+      - x
+jjjln:
+  usage: |-
+    Usage: prog --foo
+               prog --bar
+    NOT PART OF SECTION
+  runs:
+  - prog: --foo
+    expect:
+      --bar: false
+      --foo: true
+fffal:
+  usage: |+
+    UsAgE: prog [options]
+
+    OpTiOnS: --path=<files>  Path to files
+                    [dEfAuLt: /root]
+
+  runs:
+  - prog: ''
+    expect:
+      --path: /root
+  - prog: --path=home
+    expect:
+      --path: home
+fjaan:
+  usage: 'usage: prog [go go]'
+  runs:
+  - prog: ''
+    expect:
+      go: 0
+  - prog: go
+    expect:
+      go: 1
+  - prog: go go
+    expect:
+      go: 2
+  - prog: go go go
+    expect: user-error
+fffan:
+  usage: |+
+    usage: prog [options]
+
+    options:
+        -a        Add
+        -r        Remote
+        -m <msg>  Message
+
+  runs:
+  - prog: -a -r -m Hello
+    expect:
+      -m: Hello
+      -a: true
+      -r: true
+  - prog: -armyourass
+    expect:
+      -m: yourass
+      -a: true
+      -r: true
+  - prog: -a -r
+    expect:
+      -m: 
+      -a: true
+      -r: true
+fjjaa:
+  usage: 'usage: prog [-opr]'
+  runs:
+  - prog: -op
+    expect:
+      -o: true
+      -p: true
+      -r: false
+fffaa:
+  usage: |+
+    Usage: prog [options]
+
+    Options:
+     -p PATH  Path to files [default: ./]
+
+  runs:
+  - prog: ''
+    expect:
+      -p: ./
+  - prog: -phome
+    expect:
+      -p: home
+ffffa:
+  usage: |+
+    Usage: prog [options]
+
+    Options: -a  All.
+
+  runs:
+  - prog: ''
+    expect:
+      -a: false
+  - prog: -a
+    expect:
+      -a: true
+  - prog: -x
+    expect: user-error
+fjlln:
+  usage: 'usage: prog [NAME [NAME ...]]'
+  runs:
+  - prog: a b
+    expect:
+      NAME:
+      - a
+      - b
+  - prog: ''
+    expect:
+      NAME: []
+fjjjj:
+  usage: |+
+    Naval Fate.
+
+    Usage:
+      prog ship new <name>...
+      prog ship [<name>] move <x> <y> [--speed=<kn>]
+      prog ship shoot <x> <y>
+      prog mine (set|remove) <x> <y> [--moored|--drifting]
+      prog -h | --help
+      prog --version
+
+    Options:
+      -h --help     Show this screen.
+      --version     Show version.
+      --speed=<kn>  Speed in knots [default: 10].
+      --moored      Mored (anchored) mine.
+      --drifting    Drifting mine.
+
+  runs:
+  - prog: ship Guardian move 150 300 --speed=20
+    expect:
+      shoot: false
+      --moored: false
+      --drifting: false
+      move: true
+      --speed: '20'
+      mine: false
+      new: false
+      --version: false
+      set: false
+      remove: false
+      <name>:
+      - Guardian
+      ship: true
+      <x>: '150'
+      <y>: '300'
+      --help: false
+fjlnn:
+  usage: |+
+    usage: prog [options]
+    options:
+     -a        Add
+     -m <msg>  Message
+
+  runs:
+  - prog: -a
+    expect:
+      -m: 
+      -a: true
+jjjjl:
+  usage: 'Usage: foo (--xx=x|--yy=y)...'
+  runs:
+  - prog: --xx=1 --yy=2
+    expect:
+      --yy:
+      - '2'
+      --xx:
+      - '1'
+fannn:
+  usage: |+
+    usage: prog [--file=<f>]
+
+    options: --file <a>
+
+  runs:
+  - prog: ''
+    expect:
+      --file: 
+fjjnn:
+  usage: |+
+    Usage: prog [-v | -vv | -vvv]
+
+    This one is probably most readable user-friednly variant.
+
+  runs:
+  - prog: ''
+    expect:
+      -v: 0
+  - prog: -v
+    expect:
+      -v: 1
+  - prog: -vv
+    expect:
+      -v: 2
+  - prog: -vvvv
+    expect: user-error
+fjjln:
+  usage: 'Usage: prog -v ...'
+  runs:
+  - prog: ''
+    expect: user-error
+  - prog: -v
+    expect:
+      -v: 1
+  - prog: -vv
+    expect:
+      -v: 2
+  - prog: -vvvvvv
+    expect:
+      -v: 6
+fjjll:
+  usage: 'Usage: prog [-v -v]'
+  runs:
+  - prog: ''
+    expect:
+      -v: 0
+  - prog: -v
+    expect:
+      -v: 1
+  - prog: -vv
+    expect:
+      -v: 2
+flnnn:
+  usage: |+
+    usage: prog [options] -a
+
+    options: -a
+
+  runs:
+  - prog: -a
+    expect:
+      -a: true
+fllnn:
+  usage: 'usage: prog (go <direction> --speed=<km/h>)...'
+  runs:
+  - prog: ' go left --speed=5  go right --speed=9'
+    expect:
+      go: 2
+      <direction>:
+      - left
+      - right
+      --speed:
+      - '5'
+      - '9'
+fjaaa:
+  usage: 'usage: prog [--ver --ver]'
+  runs:
+  - prog: --ver --ver
+    expect:
+      --ver: 2
+ffjal:
+  usage: |+
+    usage: prog [ -a | -b ]
+
+    options: -a
+             -b
+
+  runs:
+  - prog: -a -b
+    expect: user-error
+  - prog: ''
+    expect:
+      -a: false
+      -b: false
+  - prog: -a
+    expect:
+      -a: true
+      -b: false
+  - prog: -b
+    expect:
+      -a: false
+      -b: true
+fllln:
+  usage: 'usage: prog --long=<arg> ...'
+  runs:
+  - prog: --long one
+    expect:
+      --long:
+      - one
+  - prog: --long one --long two
+    expect:
+      --long:
+      - one
+      - two
+ffjan:
+  usage: 'usage: prog <arg>'
+  runs:
+  - prog: '10'
+    expect:
+      <arg>: '10'
+  - prog: 10 20
+    expect: user-error
+  - prog: ''
+    expect: user-error
+ffaal:
+  usage: |+
+    usage: prog (<kind> --all | <name>)
+
+    options:
+     --all
+
+  runs:
+  - prog: 10 --all
+    expect:
+      --all: true
+      <kind>: '10'
+      <name>: 
+  - prog: '10'
+    expect:
+      --all: false
+      <kind>: 
+      <name>: '10'
+  - prog: ''
+    expect: user-error
+jjjal:
+  usage: |+
+    usage: prog good [options]
+               prog fail [options]
+
+    options: --loglevel=N
+
+  runs:
+  - prog: fail --loglevel 5
+    expect:
+      fail: true
+      good: false
+      --loglevel: '5'
+faall:
+  usage: 'usage: git [-v | --verbose]'
+  runs:
+  - prog: -v
+    expect:
+      -v: true
+      --verbose: false
+faaln:
+  usage: 'usage: git remote [-v | --verbose]'
+  runs:
+  - prog: remote -v
+    expect:
+      -v: true
+      remote: true
+      --verbose: false
+ffjaa:
+  usage: |+
+    usage: prog (-a|-b)
+
+    options: -a
+             -b
+
+  runs:
+  - prog: -a -b
+    expect: user-error
+  - prog: ''
+    expect: user-error
+  - prog: -a
+    expect:
+      -a: true
+      -b: false
+  - prog: -b
+    expect:
+      -a: false
+      -b: true
+fjjjl:
+  usage: 'usage: prog [--hello=<world>]'
+  runs:
+  - prog: ''
+    expect:
+      --hello: 
+  - prog: --hello wrld
+    expect:
+      --hello: wrld
+falll:
+  usage: |
+    usage: prog
+               prog <a> <b>
+  runs:
+  - prog: 1 2
+    expect:
+      <a>: '1'
+      <b>: '2'
+  - prog: ''
+    expect:
+      <a>: 
+      <b>: 
+falln:
+  usage: |
+    usage: prog <a> <b>
+               prog
+  runs:
+  - prog: ''
+    expect:
+      <a>: 
+      <b>: 
+ffnnn:
+  usage: |+
+    usage: prog (NAME | --foo) [--bar | NAME]
+
+    options: --foo
+    options: --bar
+
+  runs:
+  - prog: '10'
+    expect:
+      --bar: false
+      NAME:
+      - '10'
+      --foo: false
+  - prog: 10 20
+    expect:
+      --bar: false
+      NAME:
+      - '10'
+      - '20'
+      --foo: false
+  - prog: --foo --bar
+    expect:
+      --bar: true
+      NAME: []
+      --foo: true
+ffall:
+  usage: 'usage: prog [(<name> <name>)]'
+  runs:
+  - prog: 10 20
+    expect:
+      <name>:
+      - '10'
+      - '20'
+  - prog: '10'
+    expect: user-error
+  - prog: ''
+    expect:
+      <name>: []
+faann:
+  usage: 'usage: prog'
+  runs:
+  - prog: ''
+    expect: {}
+ffaln:
+  usage: 'usage: prog NAME...'
+  runs:
+  - prog: 10 20
+    expect:
+      NAME:
+      - '10'
+      - '20'
+  - prog: '10'
+    expect:
+      NAME:
+      - '10'
+  - prog: ''
+    expect: user-error
+fjjjn:
+  usage: 'usage: prog [-o]'
+  runs:
+  - prog: ''
+    expect:
+      -o: false
+  - prog: -o
+    expect:
+      -o: true
+jjjnn:
+  usage: |-
+    Usage:
+     prog --foo
+     prog --bar
+
+    NOT PART OF SECTION
+  runs:
+  - prog: --foo
+    expect:
+      --bar: false
+      --foo: true
+jjjll:
+  usage: 'PROGRAM USAGE: prog --foo'
+  runs:
+  - prog: --foo
+    expect:
+      --foo: true
+ffjln:
+  usage: 'usage: prog <kind> <name> <type>'
+  runs:
+  - prog: 10 20 40
+    expect:
+      <type>: '40'
+      <kind>: '10'
+      <name>: '20'
+  - prog: 10 20
+    expect: user-error
+  - prog: ''
+    expect: user-error
+fllll:
+  usage: |+
+    Usage: prog [-a <host:port>]
+
+    Options: -a, --address <host:port>  TCP address [default: localhost:6283].
+
+  runs:
+  - prog: ''
+    expect:
+      --address: localhost:6283
+ffjll:
+  usage: 'usage: prog [<arg>]'
+  runs:
+  - prog: '10'
+    expect:
+      <arg>: '10'
+  - prog: 10 20
+    expect: user-error
+  - prog: ''
+    expect:
+      <arg>: 
+ffffl:
+  usage: |+
+    Usage: prog [options]
+
+    Options: --all  All.
+
+  runs:
+  - prog: ''
+    expect:
+      --all: false
+  - prog: --all
+    expect:
+      --all: true
+  - prog: --xxx
+    expect: user-error
+falnn:
+  usage: 'usage: prog [--file=<f>]'
+  runs:
+  - prog: ''
+    expect:
+      --file: 
+fjaal:
+  usage: 'usage: prog [go]'
+  runs:
+  - prog: go
+    expect:
+      go: true
+fjall:
+  usage: 'usage: prog go...'
+  runs:
+  - prog: go go go go go
+    expect:
+      go: 5
+fjaln:
+  usage: |
+    usage: prog [options] [-a]
+
+    options: -a
+             -b
+  runs:
+  - prog: -a
+    expect:
+      -a: true
+      -b: false
+  - prog: -aa
+    expect: user-error
+ffjnn:
+  usage: 'usage: prog <kind> [<name> <type>]'
+  runs:
+  - prog: 10 20 40
+    expect:
+      <type>: '40'
+      <kind>: '10'
+      <name>: '20'
+  - prog: 10 20
+    expect:
+      <type>: 
+      <kind>: '10'
+      <name>: '20'
+  - prog: ''
+    expect: user-error
+jjjan:
+  usage: usage:prog --foo
+  runs:
+  - prog: --foo
+    expect:
+      --foo: true
+fflnn:
+  usage: |+
+    usage: prog (NAME | --foo NAME)
+
+    options: --foo
+
+  runs:
+  - prog: '10'
+    expect:
+      NAME: '10'
+      --foo: false
+  - prog: --foo 10
+    expect:
+      NAME: '10'
+      --foo: true
+  - prog: --foo=10
+    expect: user-error
+ffjjn:
+  usage: |+
+    usage: prog [(-a -b)]
+
+    options: -a
+             -b
+
+  runs:
+  - prog: -a -b
+    expect:
+      -a: true
+      -b: true
+  - prog: -b -a
+    expect:
+      -a: true
+      -b: true
+  - prog: -a
+    expect: user-error
+  - prog: -b
+    expect: user-error
+  - prog: ''
+    expect:
+      -a: false
+      -b: false
+fjlll:
+  usage: 'usage: prog [-]'
+  runs:
+  - prog: '-'
+    expect:
+      '-': true
+  - prog: ''
+    expect:
+      '-': false
+fjann:
+  usage: |+
+    Usage: prog [options] A
+    Options:
+        -q  Be quiet
+        -v  Be verbose.
+
+  runs:
+  - prog: arg
+    expect:
+      A: arg
+      -v: false
+      -q: false
+  - prog: -v arg
+    expect:
+      A: arg
+      -v: true
+      -q: false
+  - prog: -q arg
+    expect:
+      A: arg
+      -v: false
+      -q: true
+fjnnn:
+  usage: 'usage: prog --hello'
+  runs:
+  - prog: --hello
+    expect:
+      --hello: true
+fjjal:
+  usage: 'usage: prog --aabb | --aa'
+  runs:
+  - prog: --aa
+    expect:
+      --aa: true
+      --aabb: false
+  - prog: --a
+    expect: user-error
+fflll:
+  usage: 'usage: prog [NAME...]'
+  runs:
+  - prog: 10 20
+    expect:
+      NAME:
+      - '10'
+      - '20'
+  - prog: '10'
+    expect:
+      NAME:
+      - '10'
+  - prog: ''
+    expect:
+      NAME: []
+fjjan:
+  usage: 'Usage: prog -v'
+  runs:
+  - prog: -v
+    expect:
+      -v: true
+fflln:
+  usage: 'usage: prog [NAME [NAME ...]]'
+  runs:
+  - prog: 10 20
+    expect:
+      NAME:
+      - '10'
+      - '20'
+  - prog: '10'
+    expect:
+      NAME:
+      - '10'
+  - prog: ''
+    expect:
+      NAME: []

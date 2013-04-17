@@ -10,7 +10,7 @@ def load_raw name
 end
 
 test_cases = File.open \
-  File.expand_path("../test_cases.yaml", __FILE__)
+  File.expand_path("../raw/agnostic.yaml", __FILE__)
 TEST_CASES = YAML::load(test_cases.read)
 
 class Catcher

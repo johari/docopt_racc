@@ -28,22 +28,5 @@ TestParser.instance_eval do
           end
       end
     end
-
-    self.send :define_method, ("test_%s" % id).to_sym do
-      if test_case.include? "tokens" then
-        machine = Docopt::Machine.new
-        lexer = Docopt::UsageBlock::Lexer.new(test_case["usage"], machine)
-        assert_equal test_case["tokens"],\
-          lexer.tokens.map! { |x| x[1] }.keep_if { |x| x }
-      end
-      if test_case["should"] == "fail" then
-        assert_raises Docopt::LanguageError do
-          pebble = Docopt::parse(test_case["usage"])
-        end
-      elsif test_case.include? "pebble"
-        pebble = Docopt::parse(test_case["usage"])
-        assert_equal test_case["pebble"], YAML::load(pebble.to_s)
-      end
-    end
   end
 end
