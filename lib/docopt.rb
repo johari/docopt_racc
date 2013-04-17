@@ -10,13 +10,18 @@ module Docopt
   class LanguageError < StandardError
   end
 
-  class ARGVError < StandardError
+  class ARGVError < SystemExit
+    def initialize(message, silent=false)
+      puts message unless silent
+      super(message)
+    end
   end
 
   class God
-    def initialize pebble, usage
+    def initialize(pebble, usage, silent=false)
       @pebble = pebble
       @usage = usage
+      @silent = silent
     end
 
     def move(alt, cons, args, data)
@@ -29,10 +34,11 @@ module Docopt
 
     def alt(message)
       @pebble.machine.reasons.each do |(t, v)|
-        raise ARGVError, "#{v} requires argument" if t == :needs_argument
+        (raise ARGVError, "#{v} requires argument") if t == :needs_argument
       end
 
-      raise ARGVError, @usage
+      e = ARGVError.new(@usage, @silent)
+      raise e
     end
   end
 
@@ -43,9 +49,9 @@ module Docopt
       r
     end
 
-    def docopt(usage, args=ARGV)
+    def docopt(usage, args, silent=false)
       pebble = parse usage
-      god = God.new pebble, usage
+      god = God.new(pebble, usage, silent)
       pebble.pass = god
 
       # $stderr.puts "pebble is %s (%s)" % [pebble.to_s, pebble.class]
@@ -54,4 +60,32 @@ module Docopt
     end
   end
 
+end
+
+def docopt(*params, &block)
+  args = ARGV
+  if params[0].is_a? Array
+    args = params[0]
+  elsif params[0].is_a? String
+    usage = params[0]
+    args ||= params[1]
+  end
+
+  file = caller(1)[0].split(/:(?=\d|in )/, 3)[0]
+
+  begin
+    io = ::IO.read(file)
+    app, data = io.gsub("\r\n", "\n").split(/^__END__$\n/, 2)
+  rescue Errno::ENOENT
+    app, data = nil
+  end
+
+  usage ||= data
+
+  options = Docopt::docopt usage, args
+  if block_given? then
+    block.call(options)
+  else
+    options
+  end
 end

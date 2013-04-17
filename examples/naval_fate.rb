@@ -1,11 +1,7 @@
 require File.expand_path("../../lib/docopt.rb", __FILE__)
+require "pp"
 
-begin
-  require "pp"
-  pp Docopt::docopt(DATA.read)
-rescue Docopt::ARGVError => e
-  puts e.message
-end
+pp docopt
 
 __END__
 Naval Fate.

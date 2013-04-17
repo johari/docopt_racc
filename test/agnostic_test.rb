@@ -17,14 +17,18 @@ TestParser.instance_eval do
           case run["expect"]
           when "user-error"
             begin
-              Docopt::docopt(test_case["usage"], args)
+              Docopt::docopt(test_case["usage"], args, true)
             rescue Docopt::ARGVError => e
               assert_equal run["because"], e.message if run.include? "because"
             else
               raise "user-error expected"
             end
           else
-            assert_equal run["expect"], Docopt::docopt(test_case["usage"], args)
+            begin
+              assert_equal run["expect"], Docopt::docopt(test_case["usage"], args, true)
+            rescue Docopt::ARGVError => e
+              raise "ARGVError raised"
+            end
           end
       end
     end
