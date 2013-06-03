@@ -7,7 +7,7 @@ task :build => :parser
 Rake::TestTask.new(:test => [:build, :agnostic]) do |test|
   test.libs << 'lib' << 'test'
   test.test_files = FileList['test/**/*_test.rb']
-  test.verbose = true
+  test.verbose = false
   if ENV["RUBYOPTS"] then
     test.ruby_opts = Shellwords.shellwords(ENV["RUBYOPTS"])
   end
