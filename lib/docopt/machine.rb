@@ -605,7 +605,7 @@ module Docopt
           super
           start = 0
           args.each do |arg|
-            (start +=1; next) if arg[0] == "-"
+            (start +=1; next) if arg[0] == "-" and arg != "-"
             break
           end
           if args[start] == @value then
