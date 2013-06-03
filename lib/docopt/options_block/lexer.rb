@@ -17,7 +17,7 @@ module Docopt
 
         case @state
         when nil
-          r = @ss.skip_until(/^options:\n?/i)
+          r = @ss.skip_until(/options:\n?/i)
           if r.nil? then
             @ss.skip_until(/^usage:/i)
             @ss.skip_until(/\n\n+/)
@@ -29,8 +29,11 @@ module Docopt
           if help_line =~ /\[default: *(.*)\]/i then
             [:t_default, $1]
           else
-            if text = @ss.scan(/\n/) or @ss.eos? then
+            if text = @ss.scan(/\n +/) or @ss.eos? then
               @state = :prev_or_new?
+              next_token
+            elsif text = @ss.scan(/\n/) then
+              @state = nil
               next_token
             else
               raise "me"
