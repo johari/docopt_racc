@@ -17,9 +17,9 @@ module Docopt
 
         case @state
         when nil
-          r = @ss.skip_until(/options:\n?/i)
+          r = @ss.skip_until(OPTIONS_BLOCK)
           if r.nil? then
-            @ss.skip_until(/^usage:/i)
+            @ss.skip_until(USAGE_BLOCK)
             @ss.skip_until(/\n\n+/)
           end
           @state = :prev_or_new?

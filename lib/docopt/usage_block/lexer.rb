@@ -26,7 +26,7 @@ module Docopt
 
         case @state
         when nil
-          @ss.skip_until(/^usage:\n?/i)
+          @ss.skip_until(USAGE_BLOCK)
           @state = :prev_or_new?
           next_token
         when :help_message

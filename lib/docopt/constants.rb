@@ -6,5 +6,8 @@ module Docopt
     VAR = /<[:a-z\/ ]+>|[A-Z]+/
     ARG = /[a-z]+|-/
     LDOTS = /\.\.\./
+
+    USAGE_BLOCK = /^.*usage:\n?/i
+    OPTIONS_BLOCK = /^options:\n?/i
   end
 end
