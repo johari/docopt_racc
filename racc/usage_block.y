@@ -42,6 +42,10 @@ rule
     | arg_repeatable t_ldots
         { result = @machine.new_node(:one_or_more, val[0]) }
 
+  t_long_option_with_arg_argument
+    : t_var
+    | t_arg
+
   arg_repeatable
     : t_arg
         { result = @machine.new_node(:arg, val[0]) }
@@ -55,9 +59,9 @@ rule
         { result = @machine.new_node(:short_option, val[0]) }
     | t_long_opt
         { result = @machine.new_node(:long_option, val[0]) }
-    | t_long_opt_arged '=' t_var
+    | t_long_opt_arged '=' t_long_option_with_arg_argument
         { result = @machine.new_node(:long_option, val[0]) }
-    | t_long_opt '=' t_var
+    | t_long_opt '=' t_long_option_with_arg_argument
         { @machine.options[val[0]] ||= {}
           @machine.options[val[0]].update({:arg => val[2]})
           result = @machine.new_node(:long_option, val[0]) }

@@ -311,7 +311,7 @@ module Docopt
           if @machine.type[@value].to_s =~ /singular/ then
             @machine.type[@value] = t.sub("singular", "plural").to_sym
             if @machine.is_arged? @opt_name then
-              @machine.data[@value] = Shellwords.shellwords(@machine.data[@value])
+              @machine.data[@value] = Shellwords.shellwords(@machine.data[@value] || "")
             else
               @machine.data[@value] = 0
             end
