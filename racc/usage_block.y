@@ -69,14 +69,15 @@ rule
         { result = @machine.new_node(:long_option, val[0]) }
     | t_options_shorthand
         { shorts = \
-            @machine.short_options.collect do |x|
+            @machine.short_options(:options_block).collect do |x|
               @machine.new_node(:short_option, x)
             end
           longs = \
-            @machine.long_options.collect do |x|
+            @machine.long_options(:options_block).collect do |x|
               @machine.new_node(:long_option, x)
             end
           result = @machine.new_node(:either_optional, shorts+longs)
+          result.shorthand = true
         }
 
 

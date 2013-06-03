@@ -24,6 +24,7 @@ module Docopt
       end
       @reasons = []
       @all_options = @options.keys
+      @options_block_options = @all_options.dup
     end
 
     def is_arged? o
@@ -50,12 +51,24 @@ module Docopt
       end
     end
 
-    def short_options
-      @all_options.select { |x| x =~ /^-[a-z]$/ }.compact.uniq
+    def short_options(of_where=:all_options)
+      case of_where
+      when :options_block
+        target = @options_block_options
+      else
+        target = @all_options
+      end
+      target.select { |x| x =~ /^-[a-z]$/ }.compact.uniq
     end
 
-    def long_options
-      @all_options.select { |x| x =~ /^--/ }.compact.uniq
+    def long_options(of_where=:all_options)
+      case of_where
+      when :options_block
+        target = @options_block_options
+      else
+        target = @all_options
+      end
+      target.select { |x| x =~ /^--/ }.compact.uniq
     end
 
     def uniq_prefix? what, of_what
@@ -509,8 +522,10 @@ module Docopt
       end
 
       class EitherOptional < Node
+        attr_accessor :shorthand
+
         def initialize(value, machine)
-          super
+          super(value, machine)
           vals = value.map do |x|
             @machine.new_node(:optional, x)
           end
@@ -548,7 +563,11 @@ module Docopt
         end
 
         def leaf_count
-          @new_node.leaf_count
+          if shorthand
+            {}
+          else
+            @new_node.leaf_count
+          end
         end
       end
 

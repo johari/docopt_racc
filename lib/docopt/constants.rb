@@ -8,6 +8,6 @@ module Docopt
     LDOTS = /\.\.\./
 
     USAGE_BLOCK = /^.*usage:\n?/i
-    OPTIONS_BLOCK = /^options:\n?/i
+    OPTIONS_BLOCK = /^.*options:\n?/i
   end
 end
