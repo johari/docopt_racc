@@ -101,8 +101,11 @@ module Docopt
             [:t_var, text]
           elsif text = @ss.scan(/\|/) then
             [text, text]
-          elsif text = @ss.scan(/\n/) then
+          elsif text = @ss.scan(/\n +/) then
             @state = :prev_or_new?
+            next_token
+          elsif text = @ss.scan(/\n/) then
+            @ss.terminate
             next_token
           end
         when :prev_or_new?
