@@ -1,3 +1,5 @@
+require "shellwords"
+
 class String
   def classify
     return self if self !~ /_/ && self =~ /[A-Z]+.*/
@@ -7,16 +9,18 @@ end
 
 module Docopt
   class Machine
-    attr_accessor :type, :data, :options, :all_options, :reasons
+    attr_accessor :type, :data, :options, :all_options, :reasons, :untouched
 
     def initialize(options={})
       @type = {}
       @data = {}
+      @untouched = {}
       @options = options
       @options.each_pair do |opt, val|
         next if val.include? :alt
         @data[opt] = (val.include? :arg) ? nil : false
         @data[opt] = val[:default] if val.include? :default
+        @untouched[opt] = true
       end
       @reasons = []
       @all_options = @options.keys
@@ -304,11 +308,13 @@ module Docopt
 
         def pluralize
           t = @machine.type[@value].to_s
-          @machine.type[@value] = t.sub("singular", "plural").to_sym
-          if @machine.is_arged? @opt_name then
-            @machine.data[@value] = []
-          else
-            @machine.data[@value] = 0
+          if @machine.type[@value].to_s =~ /singular/ then
+            @machine.type[@value] = t.sub("singular", "plural").to_sym
+            if @machine.is_arged? @opt_name then
+              @machine.data[@value] = Shellwords.shellwords(@machine.data[@value])
+            else
+              @machine.data[@value] = 0
+            end
           end
         end
 
@@ -335,13 +341,23 @@ module Docopt
             if @machine.type[@opt_name].to_s =~ /singular/ then
               what[name_in_data] = with_what
             else
-              what[name_in_data] += [with_what]
+              if @machine.untouched[name_in_data]
+                what[name_in_data] = [with_what]
+                @machine.untouched[name_in_data] = false
+              else
+                what[name_in_data] += [with_what]
+              end
             end
           else
             if @machine.type[@opt_name].to_s =~ /singular/ then
               what[name_in_data] = true
             else
-              what[name_in_data] += 1
+              if @machine.untouched[name_in_data]
+                what[name_in_data] = 1
+                @machine.untouched[name_in_data] = false
+              else
+                what[name_in_data] += 1
+              end
             end
           end
           what
