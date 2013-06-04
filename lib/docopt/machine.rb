@@ -9,7 +9,7 @@ end
 
 module Docopt
   class Machine
-    attr_accessor :type, :data, :options, :all_options, :reasons, :untouched
+    attr_accessor :type, :data, :options, :all_options, :reasons, :untouched, :encountered_options
 
     def initialize(options={})
       @type = {}
@@ -24,6 +24,7 @@ module Docopt
       end
       @reasons = []
       @all_options = @options.keys
+      @encountered_options = []
       @options_block_options = @all_options.dup
     end
 
@@ -51,24 +52,22 @@ module Docopt
       end
     end
 
-    def short_options(of_where=:all_options)
+    def get_options(pattern, of_where=:all_options)
       case of_where
       when :options_block
-        target = @options_block_options
+        target = @options_block_options - @encountered_options
       else
         target = @all_options
       end
-      target.select { |x| x =~ /^-[a-z]$/ }.compact.uniq
+      target.select { |x| x =~ pattern }.compact.uniq
+    end
+
+    def short_options(of_where=:all_options)
+      get_options /^-[a-z]$/, of_where
     end
 
     def long_options(of_where=:all_options)
-      case of_where
-      when :options_block
-        target = @options_block_options
-      else
-        target = @all_options
-      end
-      target.select { |x| x =~ /^--/ }.compact.uniq
+      get_options /^--/, of_where
     end
 
     def uniq_prefix? what, of_what
@@ -317,6 +316,7 @@ module Docopt
         def initialize value, machine
           super
           @machine.all_options.push value
+          @machine.encountered_options.push value
         end
 
         def pluralize
@@ -522,8 +522,6 @@ module Docopt
       end
 
       class EitherOptional < Node
-        attr_accessor :shorthand
-
         def initialize(value, machine)
           super(value, machine)
           vals = value.map do |x|
@@ -563,11 +561,34 @@ module Docopt
         end
 
         def leaf_count
-          if shorthand
-            {}
-          else
-            @new_node.leaf_count
-          end
+          @new_node.leaf_count
+        end
+      end
+
+      class OptionsShorthand < EitherOptional
+        def move(alt, cons, args, data)
+          shorts = \
+            @machine.short_options(:options_block).collect do |x|
+              @machine.new_node(:short_option, x)
+            end
+
+          longs = \
+            @machine.long_options(:options_block).collect do |x|
+              @machine.new_node(:long_option, x)
+            end
+
+          old_pass = @new_node.pass
+          @new_node = @machine.new_node(:either_optional, shorts+longs)
+          @new_node.pass = old_pass
+          super
+        end
+
+        def leaf_count
+          {}
+        end
+
+        def to_s
+          "[:options_shorthand]"
         end
       end
 
