@@ -1,5 +1,5 @@
 module Docopt
-  VERSION = '0.5.0'
+  VERSION = '0.6.0'
 end
 
 require File.expand_path("../docopt/usage_block.rb", __FILE__)
