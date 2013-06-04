@@ -14,7 +14,7 @@ def parse_test(raw):
         raw = raw[3:]
 
     for fixture in raw.split('r"""'):
-        name = "".join(test_names.next())
+        name = "agnostic_" + "".join(test_names.next())
         doc, _, body = fixture.partition('"""')
         cases = []
         for case in body.split('$')[1:]:
