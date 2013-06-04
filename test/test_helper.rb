@@ -9,9 +9,14 @@ def load_raw name
   File.open(path).read
 end
 
-test_cases = File.open \
+agnostic_test_cases = File.open \
   File.expand_path("../raw/agnostic.yaml", __FILE__)
-TEST_CASES = YAML::load(test_cases.read)
+TEST_CASES = YAML::load(agnostic_test_cases.read)
+
+misc_test_cases = File.open \
+  File.expand_path("../raw/misc.yaml", __FILE__)
+TEST_CASES.update(YAML::load(misc_test_cases.read))
+
 
 class Catcher
   def initialize &asserter

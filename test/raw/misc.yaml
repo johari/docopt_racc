@@ -1,0 +1,35 @@
+---
+misc_shorthand_short_long:
+  usage: |+
+    usage: prog [options] --long
+    options: -x
+      -l --long
+      --short
+  runs:
+  - prog: -l
+    expect:
+      -x: false
+      --long: true
+      --short: false
+  - prog: --long
+    expect:
+      -x: false
+      --long: true
+      --short: false
+  - prog: -x --long
+    expect:
+      -x: true
+      --long: true
+      --short: false
+  - prog: -lx
+    expect:
+      -x: true
+      --long: true
+      --short: false
+  - prog: --short -l
+    expect:
+      -x: false
+      --long: true
+      --short: true
+  - prog: --short
+    expect: "user-error"
