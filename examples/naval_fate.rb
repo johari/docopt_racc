@@ -1,9 +1,7 @@
 require File.expand_path("../../lib/docopt.rb", __FILE__)
 require "pp"
 
-pp docopt
-
-__END__
+usage = <<-DOCOPT
 Naval Fate.
 
 Usage:
@@ -20,3 +18,11 @@ Options:
   --speed=<kn>  Speed in knots [default: 10].
   --moored      Moored (anchored) mine.
   --drifting    Drifting mine.
+
+DOCOPT
+
+options = Docopt.parse usage do |err|
+  puts err
+end
+
+pp options
