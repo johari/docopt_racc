@@ -71,12 +71,10 @@ module Docopt
     end
 
     def uniq_prefix? what, of_what
-      # puts [what, of_what].to_s
       r = long_options.select do |long|
         return true if what == of_what
-        long[0...(what.length)] == what
+        long.start_with? what
       end
-      # raise [r, r[0], of_what].to_s
       r.length == 1 and r[0] == of_what
     end
 
@@ -393,7 +391,13 @@ module Docopt
           new_data = data.clone
           if @machine.is_arged? @opt_name then
             args.each_with_index do |arg, index|
-              if @machine.uniq_prefix? arg, @opt_name then
+              if arg =~ /(.*)=(.*)/ and
+                    @machine.uniq_prefix? $1, @opt_name then
+                new_args = args[0...index]
+                cdr = args[index+1..-1]
+                new_args += cdr if cdr
+                new_data = populate new_data, $2
+              elsif @machine.uniq_prefix? arg, @opt_name then
                 if index == args.length-1 then
                   return alt.alt([:needs_argument, @opt_name])
                 end
@@ -405,12 +409,6 @@ module Docopt
                 cdr = args[index+2..-1]
                 new_args += cdr if cdr
                 new_data = populate new_data, val
-              elsif arg =~ /(.*)=(.*)/ \
-                  and @machine.uniq_prefix? $1, @opt_name then
-                new_args = args[0...index]
-                cdr = args[index+1..-1]
-                new_args += cdr if cdr
-                new_data = populate new_data, $2
               else
                 next
               end
