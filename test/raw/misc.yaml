@@ -35,7 +35,9 @@ misc_shorthand_short_long:
     expect: "user-error"
 misc_error_requires_argument_or_required:
   usage: |+
-    usage: prog --foo=<arg> [-r <arg>] [-a <arg>] [<arg>]
+    usage:
+      prog --foo=<arg> [-r <arg>] [-a <arg>] [<arg>]
+      prog dash [-]
     options:
       --foo <arg>
       -a <arg>      [default: value]
@@ -50,6 +52,8 @@ misc_error_requires_argument_or_required:
       -a: value
       -r:
       <arg>:
+      dash: false
+      "-": false
   - prog: -r
     expect: user-error
   - prog: --foo bar -r
@@ -61,21 +65,67 @@ misc_error_requires_argument_or_required:
       -a: value
       -r: "-"
       <arg>:
+      dash: false
+      "-": false
   - prog: --foo - -r -
     expect:
       --foo: "-"
       -a: value
       -r: "-"
       <arg>:
+      dash: false
+      "-": false
   - prog: --foo arg
     expect:
       --foo: "arg"
       -a: value
       -r:
       <arg>:
+      dash: false
+      "-": false
   - prog: --foo=- -
     expect:
       --foo: "-"
       -a: value
       -r:
       <arg>: "-"
+      dash: false
+      "-": false
+  - prog: dash
+    expect:
+      --foo:
+      -a: value
+      -r:
+      <arg>:
+      dash: true
+      "-": false
+  - prog: dash -
+    expect:
+      --foo:
+      -a: value
+      -r:
+      <arg>:
+      dash: true
+      "-": true
+misc_long_requires_argument:
+  usage: |+
+    usage:
+      prog --foo=<arg> [-r <arg>] [-a <arg>] [<arg>]
+    options:
+      --foo <arg>
+      -a <arg>      [default: value]
+      -r <arg>
+  runs:
+  - prog: --foo
+    expect: user-error
+    because: "--foo requires argument"
+misc_dash_party:
+  usage: |+
+    usage: prog [-]...
+  runs:
+  - prog: ""
+    expect:
+      "-": 0
+  - prog: "- - -"
+    expect:
+      "-": 3

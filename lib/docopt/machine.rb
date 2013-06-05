@@ -475,7 +475,7 @@ module Docopt
                         end
                       else
                         val = arg[(index+1)..-1]
-                        if val[0]== "-" and val != "-"then
+                        if val[0] == "-" and val != "-" then
                           return alt.alt([:needs_argument, @opt_name])
                         end
                         if arg[0..(index-1)] == "-" then
