@@ -9,7 +9,8 @@ end
 
 module Docopt
   class Machine
-    attr_accessor :type, :data, :options, :all_options, :reasons, :untouched, :encountered_options
+    attr_accessor :type, :data, :options, :all_options, :reasons,
+      :untouched, :encountered_options
 
     def initialize(options={})
       @type = {}
@@ -50,6 +51,10 @@ module Docopt
           @options[o][:arg]
         end
       end
+    end
+
+    def is_valid_arg_for? option, val
+      ! (val[0] == "-" and val != "-")
     end
 
     def get_options(pattern, of_where=:all_options)
@@ -347,7 +352,7 @@ module Docopt
           end
         end
 
-        def populate what, with_what
+        def update_data what, with_what
           if @machine.option_has_argument? @opt_name then
             if @machine.type[@opt_name].to_s =~ /singular/ then
               what[name_in_data] = with_what
@@ -392,24 +397,34 @@ module Docopt
           if @machine.option_has_argument? @opt_name then
             args.each_with_index do |arg, index|
               if arg =~ /(.*)=(.*)/ and
-                    @machine.uniq_prefix? $1, @opt_name then
+                 @machine.uniq_prefix? $1, @opt_name
+              then
+                # long option has argument and the argument is provided
+                # with `=' sign
                 new_args = args[0...index]
                 cdr = args[index+1..-1]
                 new_args += cdr if cdr
-                new_data = populate new_data, $2
+                new_data = update_data new_data, $2
               elsif @machine.uniq_prefix? arg, @opt_name then
+                # consume next argv_elem as argument or fail if
+                # there isn't any
                 if index == args.length-1 then
                   return alt.alt([:needs_argument, @opt_name])
                 end
+
                 val = args[index+1]
-                if val[0] == "-" and val != "-" then
+                # is it valid?
+                unless @machine.is_valid_arg_for? @opt_name, val[0]
                   return alt.alt([:needs_argument, @opt_name])
                 end
+
                 new_args = args[0...index]
                 cdr = args[index+2..-1]
                 new_args += cdr if cdr
-                new_data = populate new_data, val
+
+                new_data = update_data new_data, val
               else
+                #TODO: not a unique prefix
                 next
               end
               return @pass.move(alt, cons + [@opt_name, val], new_args, new_data)
@@ -420,7 +435,7 @@ module Docopt
                 new_args = args[0...index]
                 cdr = args[(index+1)..-1]
                 new_args += cdr if cdr
-                new_data = populate new_data, true
+                new_data = update_data new_data, true
                 return @pass.move(alt, cons+[@opt_name], new_args, new_data)
               end
             end
@@ -447,64 +462,88 @@ module Docopt
 
         def move(alt, cons, args, data)
           new_data = data.clone
-          found = false
-          args.each_with_index do |arg, args_index|
-            if arg[0] == "-" then
-              arg[0..-1].each_char.each_with_index do |short, index|
-                break if found
-                next if index == 0
-                cur_opt = "-#{short}"
-                if @machine.option_has_argument? cur_opt then
-                  if cur_opt == @opt_name then
-                    if @machine.option_has_argument? cur_opt then
-                      if index == arg.length-1 then
-                        if args_index == args.length-1 then
-                          return alt.alt([:needs_argument, @opt_name])
-                        else
-                          val = args[args_index+1]
-                          if val[0] == "-" and val != "-" then
-                            return alt.alt([:needs_argument, @opt_name])
-                          end
-                          new_args = args[0...args_index]
-                          new_args = [arg[0...index]] if arg[0...index] != "-"
-                          aaron = args[(args_index+2)..-1]
-                          new_args += aaron if aaron
-                          new_data = populate new_data, val
-                        end
-                      else
-                        val = arg[(index+1)..-1]
-                        if val[0] == "-" and val != "-" then
-                          return alt.alt([:needs_argument, @opt_name])
-                        end
-                        if arg[0..(index-1)] == "-" then
-                          new_args = args[0...args_index] + args[(args_index+1)..-1]
-                        else
-                          new_args = args[0...args_index] + [arg[0...index]] + args[(args_index+1)..-1]
-                        end
-                        new_data = populate new_data, val
-                      end
-                      return @pass.move(alt, cons+[@opt_name, val], new_args, new_data)
-                    end
-                  else
-                    break
-                  end
-                else
-                  if cur_opt == @opt_name then
-                    new_data = populate new_data, true
-                    new_arg = arg[0...index] + arg[(index+1)..-1]
-                    if new_arg == "-" then
-                      new_args = args[0...args_index] + args[(args_index+1)..-1]
-                    else
-                      new_args = args[0...args_index]\
-                               + [new_arg]\
-                               + args[(args_index+1)..-1]
-                    end
-                    return @pass.move(alt, cons + [@opt_name], new_args, new_data)
-                  end
+          args.each_with_index do |argv_elem, argv_index|
+            # should find short option in argv element starting with dash
+            next unless argv_elem[0] == "-"
+
+            argv_elem.each_char.each_with_index do |char, elem_index|
+              next if elem_index == 0 # char is the starting dash!
+
+              cur_opt = "-#{char}"
+
+              if @machine.option_has_argument? cur_opt then
+                unless cur_opt == @opt_name
+                  # won't find desired short option (@opt_name) in
+                  # this argv_elem
+                  # rest of the argv_elem would be the argument of
+                  # cur_opt, because cur_opt has_argument
+                  # so skip checking other characters in current argv_elem
+                  # and scan the next one
+                  break
                 end
+
+                if elem_index == argv_elem.length-1 then
+                  # at the last character of argv_elem
+                  # look for the argument in next argv_elem
+
+                  # fail if there's no further argv_elem
+                  if argv_index == args.length-1
+                    return alt.alt([:needs_argument, @opt_name])
+                  end
+
+                  # argument is supposed to be the next element in argv
+                  val = args[argv_index+1]
+                  # we should check if it's a valid value for option argument
+                  unless @machine.is_valid_arg_for? @opt_name, val[0]
+                    return alt.alt([:needs_argument, @opt_name])
+                  end
+
+                  new_args = args[0...argv_index]
+
+                  #BUG: should be +=
+                  if argv_elem[0...elem_index] != "-"
+                    new_args = [argv_elem[0...elem_index]]
+                  end
+
+                  rest_of_args = args[(argv_index+2)..-1]
+                  new_args += rest_of_args if rest_of_args #might be nil
+                  new_data = update_data new_data, val
+                else
+                  # look for the argument in current argv_elem
+                  val = argv_elem[(elem_index+1)..-1]
+
+                  unless @machine.is_valid_arg_for? @opt_name, val[0]
+                    return alt.alt([:needs_argument, @opt_name])
+                  end
+
+                  new_args = args[0...argv_index]
+                  unless argv_elem[0..(elem_index-1)] == "-" then
+                    # there are some options before current option
+                    # so keep them in argv
+                    new_args += [argv_elem[0...elem_index]]
+                  else
+                    # there isn't any options before current option
+                    # so pop the argv_elem from argv
+                  end
+                  new_args += args[(argv_index+1)..-1]
+
+                  new_data = update_data new_data, val
+                end
+                return @pass.move(alt, cons+[@opt_name, val], new_args, new_data)
+              elsif cur_opt == @opt_name then
+                new_data = update_data new_data, true #FOUND IT!
+
+                remainder = argv_elem[0...elem_index] + argv_elem[(elem_index+1)..-1]
+                if remainder == "-" then
+                  new_args = args[0...argv_index] + args[(argv_index+1)..-1]
+                else
+                  new_args = args[0...argv_index]\
+                           + [remainder]\
+                           + args[(argv_index+1)..-1]
+                end
+
+                return @pass.move(alt, cons + [@opt_name], new_args, new_data)
               end
-            else
-              next
             end
           end
           alt.alt([:expected, @opt_name])
