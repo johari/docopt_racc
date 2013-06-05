@@ -15,9 +15,7 @@ module Docopt
 
       def tokens
         res = []
-        while (t = next_token) do
-          res.push t
-        end
+        res.push t while (t = next_token)
         res
       end
 
@@ -72,13 +70,7 @@ module Docopt
           @ss.skip(/[[:blank:]]+/)
           if text = @ss.scan(/\[options\]/) then
             [:t_options_shorthand, text]
-          elsif text = @ss.scan(/\[/) then
-            [text, text]
-          elsif text = @ss.scan(/\]/) then
-            [text, text]
-          elsif text = @ss.scan(/\(/) then
-            [text, text]
-          elsif text = @ss.scan(/\)/) then
+          elsif text = @ss.scan(/[\[\]\(\)]/) then
             [text, text]
           elsif text = @ss.scan(/-[a-z]/) then
             @state = :short_stack
