@@ -28,12 +28,12 @@ module Docopt
       @options_block_options = @all_options.dup
     end
 
-    def is_arged? o
+    def option_has_argument? o
       if !@options.include? o
         false
       else
         if @options[o].include? :alt
-          is_arged? @options[o][:alt]
+          option_has_argument? @options[o][:alt]
         else
           @options[o].include? :arg
         end
@@ -321,7 +321,7 @@ module Docopt
           t = @machine.type[@value].to_s
           if @machine.type[@value].to_s =~ /singular/ then
             @machine.type[@value] = t.sub("singular", "plural").to_sym
-            if @machine.is_arged? @opt_name then
+            if @machine.option_has_argument? @opt_name then
               @machine.data[@value] = Shellwords.shellwords(@machine.data[@value] || "")
             else
               @machine.data[@value] = 0
@@ -348,7 +348,7 @@ module Docopt
         end
 
         def populate what, with_what
-          if @machine.is_arged? @opt_name then
+          if @machine.option_has_argument? @opt_name then
             if @machine.type[@opt_name].to_s =~ /singular/ then
               what[name_in_data] = with_what
             else
@@ -380,7 +380,7 @@ module Docopt
           super
           @opt_name = value
           @machine.type[value] ||= :singular_long_option
-          if @machine.is_arged? @opt_name then
+          if @machine.option_has_argument? @opt_name then
             @machine.data[value] = nil if not @machine.data.include? value
           else
             @machine.data[value] = false if not @machine.data.include? value
@@ -389,7 +389,7 @@ module Docopt
 
         def move(alt, cons, args, data)
           new_data = data.clone
-          if @machine.is_arged? @opt_name then
+          if @machine.option_has_argument? @opt_name then
             args.each_with_index do |arg, index|
               if arg =~ /(.*)=(.*)/ and
                     @machine.uniq_prefix? $1, @opt_name then
@@ -437,7 +437,7 @@ module Docopt
           @machine.type[value] ||= :singular_short_option
           if not (@machine.options[@opt_name] \
                   and @machine.options[@opt_name].include? :alt) then
-            if @machine.is_arged? @opt_name then
+            if @machine.option_has_argument? @opt_name then
               @machine.data[value] = nil if not @machine.data.include? value
             else
               @machine.data[value] = false if not @machine.data.include? value
@@ -454,9 +454,9 @@ module Docopt
                 break if found
                 next if index == 0
                 cur_opt = "-#{short}"
-                if @machine.is_arged? cur_opt then
+                if @machine.option_has_argument? cur_opt then
                   if cur_opt == @opt_name then
-                    if @machine.is_arged? cur_opt then
+                    if @machine.option_has_argument? cur_opt then
                       if index == arg.length-1 then
                         if args_index == args.length-1 then
                           return alt.alt([:needs_argument, @opt_name])
@@ -511,7 +511,7 @@ module Docopt
         end
 
         def to_s
-          if @machine.is_arged? @opt_name then
+          if @machine.option_has_argument? @opt_name then
             '[":short_opt", "%s", "%s"]' % [@opt_name, @machine.arg_of(@opt_name)]
           else
             super

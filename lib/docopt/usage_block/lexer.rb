@@ -56,7 +56,7 @@ module Docopt
         when :short_stack
           if text = @ss.scan(/[a-z]/) then
             opt = "-#{text}"
-            if @machine.is_arged? opt then
+            if @machine.option_has_argument? opt then
               @state = :emit_unstandard_arg
               [:t_short_opt_arged, opt]
             else
@@ -80,7 +80,7 @@ module Docopt
           elsif text = @ss.scan(LDOTS) then
             [:t_ldots, text]
           elsif text = @ss.scan(LONG_OPT) then
-            if @machine.is_arged? text then
+            if @machine.option_has_argument? text then
               [:t_long_opt_arged, text]
             else
               [:t_long_opt, text]
