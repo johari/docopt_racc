@@ -353,29 +353,26 @@ module Docopt
         end
 
         def update_data what, with_what
-          if @machine.option_has_argument? @opt_name then
-            if @machine.type[@opt_name].to_s =~ /singular/ then
-              what[name_in_data] = with_what
-            else
-              if @machine.untouched[name_in_data]
-                what[name_in_data] = [with_what]
-                @machine.untouched[name_in_data] = false
-              else
-                what[name_in_data] += [with_what]
-              end
-            end
+          has_argument = @machine.option_has_argument? @opt_name
+          singular = @machine.type[@opt_name].to_s =~ /singular/
+
+          if has_argument
+            new_data = singular ? with_what : [with_what]
           else
-            if @machine.type[@opt_name].to_s =~ /singular/ then
-              what[name_in_data] = true
+            new_data = singular ? true : 1
+          end
+
+          if singular
+            what[name_in_data] = new_data
+          else
+            if @machine.untouched[name_in_data]
+              what[name_in_data] = new_data
+              @machine.untouched[name_in_data] = false
             else
-              if @machine.untouched[name_in_data]
-                what[name_in_data] = 1
-                @machine.untouched[name_in_data] = false
-              else
-                what[name_in_data] += 1
-              end
+              what[name_in_data] += new_data
             end
           end
+
           what
         end
       end
