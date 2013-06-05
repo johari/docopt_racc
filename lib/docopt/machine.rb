@@ -392,8 +392,8 @@ module Docopt
         def move(alt, cons, args, data)
           new_data = data.clone
           if @machine.option_has_argument? @opt_name then
-            args.each_with_index do |arg, index|
-              if arg =~ /(.*)=(.*)/ and
+            args.each_with_index do |argv_elem, index|
+              if argv_elem =~ /(.*)=(.*)/ and
                  @machine.uniq_prefix? $1, @opt_name
               then
                 # long option has argument and the argument is provided
@@ -402,7 +402,7 @@ module Docopt
                 cdr = args[index+1..-1]
                 new_args += cdr if cdr
                 new_data = update_data new_data, $2
-              elsif @machine.uniq_prefix? arg, @opt_name then
+              elsif @machine.uniq_prefix? argv_elem, @opt_name then
                 # consume next argv_elem as argument or fail if
                 # there isn't any
                 if index == args.length-1 then
@@ -460,7 +460,7 @@ module Docopt
         def move(alt, cons, args, data)
           new_data = data.clone
           args.each_with_index do |argv_elem, argv_index|
-            # should find short option in argv element starting with dash
+            # short option is in an argv_elem starting with dash
             next unless argv_elem[0] == "-"
 
             argv_elem.each_char.each_with_index do |char, elem_index|
