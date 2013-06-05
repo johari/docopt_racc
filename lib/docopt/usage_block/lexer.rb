@@ -103,7 +103,7 @@ module Docopt
         when :prev_or_new?
           @ss.skip(/[[:blank:]]+/)
           if @prog_name.nil? then
-            @prog_name = @ss.scan(/[\w\._-]+/)
+            @prog_name = @ss.scan(PROG_NAME)
             if @prog_name then
               @ss.unscan
               return next_token
