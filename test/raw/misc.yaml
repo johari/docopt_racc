@@ -33,3 +33,49 @@ misc_shorthand_short_long:
       --short: true
   - prog: --short
     expect: "user-error"
+misc_error_requires_argument_or_required:
+  usage: |+
+    usage: prog --foo=<arg> [-r <arg>] [-a <arg>] [<arg>]
+    options:
+      --foo <arg>
+      -a <arg>      [default: value]
+      -r <arg>
+  runs:
+  - prog: --foo
+    expect: user-error
+    because: "--foo requires argument"
+  - prog: --foo -
+    expect:
+      --foo: "-"
+      -a: value
+      -r:
+      <arg>:
+  - prog: -r
+    expect: user-error
+  - prog: --foo bar -r
+    expect: user-error
+    because: "-r requires argument"
+  - prog: --foo - -r-
+    expect:
+      --foo: "-"
+      -a: value
+      -r: "-"
+      <arg>:
+  - prog: --foo - -r -
+    expect:
+      --foo: "-"
+      -a: value
+      -r: "-"
+      <arg>:
+  - prog: --foo arg
+    expect:
+      --foo: "arg"
+      -a: value
+      -r:
+      <arg>:
+  - prog: --foo=- -
+    expect:
+      --foo: "-"
+      -a: value
+      -r:
+      <arg>: "-"
