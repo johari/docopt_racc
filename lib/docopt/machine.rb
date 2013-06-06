@@ -1,12 +1,5 @@
 require "shellwords"
 
-class String
-  def classify
-    return self if self !~ /_/ && self =~ /[A-Z]+.*/
-    split('_').map{|e| e.capitalize}.join
-  end
-end
-
 module Docopt
   class Machine
     attr_accessor :type, :data, :options, :all_options, :reasons,
@@ -84,7 +77,12 @@ module Docopt
     end
 
     def new_node(type, value)
-      Nodes.const_get(type.to_s.classify).new(value, self)
+      def classify what
+        return what if what !~ /_/ && what =~ /[A-Z]+.*/
+        what.split('_').map{|e| e.capitalize}.join
+      end
+
+      Nodes.const_get(classify type.to_s).new(value, self)
     end
 
     module Nodes
