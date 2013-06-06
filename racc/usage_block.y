@@ -77,10 +77,10 @@ rule
     | '[' mutex ']'
         { #HACK
           result = @machine.new_node(:optional, val[1])
-          # if val[1].kind_of? Docopt::Machine::Nodes::ShortOption then
+          # if val[1].kind_of? Docopt::Nodes::ShortOption then
           #   result = @machine.new_node(:either_optional, [val[1]])
           # els
-          if val[1].kind_of? Docopt::Machine::Nodes::Cons \
+          if val[1].kind_of? Docopt::Nodes::Cons \
             then
             result = @machine.new_node(:either_optional, val[1].cons)
           end
