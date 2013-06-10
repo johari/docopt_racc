@@ -28,12 +28,11 @@ module Docopt
 
             if @machine.option_has_argument? cur_opt then
               unless cur_opt == @opt_name
-                # won't find desired short option (@opt_name) in
-                # this argv_elem
-                # rest of the argv_elem would be the argument of
+                # won't find desired short option (@opt_name) in this argv_elem
+                # the rest of the argv_elem would be the argument of
                 # cur_opt, because cur_opt has_argument
-                # so skip checking other characters in current argv_elem
-                # and scan the next one
+                # so skip scanning other characters in current argv_elem
+                # and go to next one
                 break
               end
 
