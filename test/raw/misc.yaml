@@ -129,3 +129,51 @@ misc_dash_party:
   - prog: "- - -"
     expect:
       "-": 3
+misc_short_long_alt:
+  usage: |+
+    usage: prog --one
+      prog -t
+      prog --foo...
+      prog -b...
+    options:
+      -o --one
+      -t --two
+      -f --foo
+      -b --bar
+  runs:
+    - prog: --one
+      expect:
+        --one: true
+        --two: false
+        --foo: 0
+        --bar: 0
+    - prog: -o
+      expect:
+        --one: true
+        --two: false
+        --foo: 0
+        --bar: 0
+    - prog: -t
+      expect:
+        --one: false
+        --two: true
+        --foo: 0
+        --bar: 0
+    - prog: --two
+      expect:
+        --one: false
+        --two: true
+        --foo: 0
+        --bar: 0
+    - prog: -f --foo -ff --foo
+      expect:
+        --one: false
+        --two: false
+        --foo: 5
+        --bar: 0
+    - prog: -b --bar -bb --bar
+      expect:
+        --one: false
+        --two: false
+        --foo: 0
+        --bar: 5
