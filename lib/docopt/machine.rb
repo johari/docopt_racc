@@ -46,8 +46,20 @@ module Docopt
       end
     end
 
+    def is_valid_arg? val
+      # a single dash is a valid argument
+      return true if val == "-"
+
+      # string starting with dash, other than "-"
+      # is not a valid argument (it's a sequence of short options)
+      return false if val[0] == "-"
+
+      # other things are pretty fine
+      return true
+    end
+
     def is_valid_arg_for? option, val
-      ! (val[0] == "-" and val != "-")
+      is_valid_arg? val
     end
 
     def get_options(pattern, of_where=:all_options)
