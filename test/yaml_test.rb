@@ -27,7 +27,18 @@ TestParser.instance_eval do
             begin
               assert_equal run["expect"], Docopt::docopt(test_case["usage"], args, true)
             rescue Docopt::ARGVError => e
-              raise "ARGVError raised"
+              message = ""
+
+              line_sep = "\n" + ("="*20) + "\n"
+              ["ARGVError raised:",
+               test_case["usage"],
+               args.inspect,
+               "expected:\n" << run["expect"].to_s,
+              ].each do |line|
+                message << line << line_sep
+              end
+
+              raise message
             end
           end
       end
