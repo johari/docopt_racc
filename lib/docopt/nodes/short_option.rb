@@ -91,12 +91,14 @@ module Docopt
               new_data = update_data new_data, true #FOUND IT!
 
               # remove the option from current argv_elem
-              remainder = argv_elem.dup.slice!(elem_index)
+              remainder = argv_elem.dup
+              remainder[elem_index] = ""
 
               if remainder == "-" then
                 # no other short options left in this argv_elem
                 # remove argv_elem from args
-                new_args = args.dup.slice(argv_index)
+                new_args = args.dup
+                new_args.delete_at argv_index
               else
                 new_args = args.dup
                 new_args[argv_index] = remainder
