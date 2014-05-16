@@ -1,0 +1,4 @@
+* default values for pluralized options are buggy
+  * try -vvv with default value for example
+* run the naval_fate example
+* if [options] shorthand is repeated in multiple synopsis, it probably fails to match any option in second one
